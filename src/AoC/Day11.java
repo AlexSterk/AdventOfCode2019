@@ -68,7 +68,7 @@ public class Day11 {
         for (int y = minY; y <= maxY; y++) {
             for (int x = minX; x <= maxX; x++) {
                 long pixel = painted.getOrDefault(new Vector(x, y), 0L);
-                bufferedImage.setRGB(x,y, (pixel == 1) ? Integer.MAX_VALUE : 0);
+                bufferedImage.setRGB(x + minX,y + minY, (pixel == 1) ? Integer.MAX_VALUE : 0);
             }
         }
 
