@@ -1,4 +1,4 @@
-package intcode;
+package other;
 
 import java.util.*;
 

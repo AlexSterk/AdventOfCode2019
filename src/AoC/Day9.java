@@ -1,6 +1,6 @@
 package AoC;
 
-import intcode.IntCodeInterpreter;
+import other.IntCodeInterpreter;
 
 import java.io.IOException;
 import java.nio.file.Files;
