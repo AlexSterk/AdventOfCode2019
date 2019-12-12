@@ -1,7 +1,4 @@
-package AoC;
 
-import other.IntCodeInterpreter;
-import other.Vector;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -28,6 +25,32 @@ public class Day11 {
         System.out.println(painted.size());
     }
 
+    private static void partTwo(List<Long> initialState) throws IOException {
+        Map<Vector, Long> painted = runBot(initialState, 1L);
+        String imagePath = "resources/id.png";
+
+        renderImage(painted, imagePath);
+    }
+
+    private static void renderImage(Map<Vector, Long> painted, String imagePath) throws IOException {
+        int minX = Collections.min(painted.keySet(), Comparator.comparingInt(o -> o.x)).x;
+        int minY = Collections.min(painted.keySet(), Comparator.comparingInt(o -> o.y)).y;
+
+        int maxX = Collections.max(painted.keySet(), Comparator.comparingInt(o -> o.x)).x;
+        int maxY = Collections.max(painted.keySet(), Comparator.comparingInt(o -> o.y)).y;
+
+        BufferedImage bufferedImage = new BufferedImage(maxX - minX + 1, maxY - minY + 1, BufferedImage.TYPE_BYTE_BINARY);
+
+        for (int y = minY; y <= maxY; y++) {
+            for (int x = minX; x <= maxX; x++) {
+                long pixel = painted.getOrDefault(new Vector(x, y), 0L);
+                bufferedImage.setRGB(x - minX,y - minY, (pixel == 1) ? Integer.MAX_VALUE : 0);
+            }
+        }
+
+        ImageIO.write(bufferedImage,"png", new File(imagePath));
+    }
+
     private static Map<Vector, Long> runBot(List<Long> initialState, long startPanel) {
         Stack<Long> in = new Stack<>();
         Stack<Long> out = new Stack<>();
@@ -52,28 +75,6 @@ public class Day11 {
             in.push(painted.getOrDefault(location, 0L));
         }
         return painted;
-    }
-
-    private static void partTwo(List<Long> initialState) throws IOException {
-        Map<Vector, Long> painted = runBot(initialState, 1L);
-
-        int minX = Collections.min(painted.keySet(), Comparator.comparingInt(o -> o.x)).x;
-        int minY = Collections.min(painted.keySet(), Comparator.comparingInt(o -> o.y)).y;
-
-        int maxX = Collections.max(painted.keySet(), Comparator.comparingInt(o -> o.x)).x;
-        int maxY = Collections.max(painted.keySet(), Comparator.comparingInt(o -> o.y)).y;
-
-        BufferedImage bufferedImage = new BufferedImage(maxX - minX + 1, maxY - minY + 1, BufferedImage.TYPE_BYTE_BINARY);
-
-        for (int y = minY; y <= maxY; y++) {
-            for (int x = minX; x <= maxX; x++) {
-                long pixel = painted.getOrDefault(new Vector(x, y), 0L);
-                bufferedImage.setRGB(x - minX,y - minY, (pixel == 1) ? Integer.MAX_VALUE : 0);
-            }
-        }
-
-        ImageIO.write(bufferedImage,"png", new File("resources/id.png"));
-
     }
 
     public static int turnLeft(int currentDirection) {

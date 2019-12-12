@@ -1,6 +1,9 @@
-package other;
-
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class IntCodeInterpreter {
     private final List<Long> program;
@@ -144,6 +147,18 @@ public class IntCodeInterpreter {
 
         OpCode(String opcode) {
             this.opcode = opcode;
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        for (String arg : args) {
+            String inputString = Files.readString(Paths.get(arg));
+            List<Long> initialState = Stream.of(inputString.split("[,\n]")).map(Long::parseLong).collect(Collectors.toList());
+
+            Stack<Long> out = new Stack<>();
+            new IntCodeInterpreter(initialState, new Stack<>(), out).run();
+            System.out.println("Output for: " + arg);
+            System.out.println(out);
         }
     }
 }

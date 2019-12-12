@@ -1,4 +1,4 @@
-package AoC.day7;
+package day7;
 
 import java.io.IOException;
 import java.nio.file.Files;

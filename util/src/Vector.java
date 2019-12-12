@@ -1,7 +1,3 @@
-package other;
-
-import AoC.Day10;
-
 import java.util.Objects;
 
 public class Vector {
