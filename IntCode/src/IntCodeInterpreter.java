@@ -7,8 +7,8 @@ import java.util.stream.Stream;
 
 public class IntCodeInterpreter {
     private final List<Long> program;
-    private final Stack<Long> in;
-    private final Stack<Long> out;
+    public final Stack<Long> in;
+    public final Stack<Long> out;
     private int pointer = 0;
     private boolean halted = false;
     private int relBase = 0;
@@ -155,8 +155,14 @@ public class IntCodeInterpreter {
             String inputString = Files.readString(Paths.get(arg));
             List<Long> initialState = Stream.of(inputString.split("[,\n]")).map(Long::parseLong).collect(Collectors.toList());
 
+            Stack<Long> in = new Stack<>();
             Stack<Long> out = new Stack<>();
-            new IntCodeInterpreter(initialState, new Stack<>(), out).run();
+            IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, in, out);
+            boolean halted;
+            Scanner scanner = new Scanner(System.in);
+            do {
+                halted = cpu.run();
+            } while (!halted && in.push(scanner.nextLong()) != null);
             System.out.println("Output for: " + arg);
             System.out.println(out);
         }
