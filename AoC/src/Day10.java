@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 public class Day10 {
 
     public static void main(String[] args) throws IOException {
-        List<String> lines = Files.readAllLines(Paths.get("resources/day10.txt"));
+        List<String> lines = Files.readAllLines(Paths.get("AoC/resources/day10.txt"));
         Collection<Vector> asteroids = new HashSet<>();
 
         for (int y = 0; y < lines.size(); y++) {
@@ -33,7 +33,7 @@ public class Day10 {
         }
         for (Vector e : detected) {
             if (++i == stop) {
-                System.out.println(e.x * 100 + e.y);
+                System.out.println(e.get(0) * 100 + e.get(1));
                 break;
             }
         }
@@ -52,13 +52,13 @@ public class Day10 {
 
             Set<Vector> copy = new HashSet<>(distances);
             for (Vector vector : distances) {
-                copy.removeIf(o -> (Math.abs(o.x) > Math.abs(vector.x) || Math.abs(o.y) > Math.abs(vector.y)) && 1 - vector.cosineSimilarity(o) < 0.0000000001);
+                copy.removeIf(o -> (Math.abs(o.get(0)) > Math.abs(vector.get(0)) || Math.abs(o.get(1)) > Math.abs(vector.get(1))) && 1 - vector.cosineSimilarity(o) < 0.0000000001);
             }
             vision.put(asteroid, copy.stream().map(asteroid::add).collect(Collectors.toCollection(() -> new TreeSet<>((o1, o2) -> {
                 Vector d1 = o1.minus(asteroid);
                 Vector d2 = o2.minus(asteroid);
 
-                return Double.compare(d1.getAngle(), d2.getAngle());
+                return Double.compare(d1.getAngle(0, 1), d2.getAngle(0,1));
             }))));
         }
         return vision;

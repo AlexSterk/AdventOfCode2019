@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 public class Day11 {
     public static void main(String[] args) throws IOException {
-        String inputString = Files.readString(Paths.get("resources/day11.txt"));
+        String inputString = Files.readString(Paths.get("AoC/resources/day11.txt"));
         List<Long> initialState = Stream.of(inputString.split("[,\n]")).map(Long::parseLong).collect(Collectors.toList());
 
         partOne(initialState);
@@ -27,17 +27,17 @@ public class Day11 {
 
     private static void partTwo(List<Long> initialState) throws IOException {
         Map<Vector, Long> painted = runBot(initialState, 1L);
-        String imagePath = "resources/id.png";
+        String imagePath = "AoC/resources/id.png";
 
         renderImage(painted, imagePath);
     }
 
     private static void renderImage(Map<Vector, Long> painted, String imagePath) throws IOException {
-        int minX = Collections.min(painted.keySet(), Comparator.comparingInt(o -> o.x)).x;
-        int minY = Collections.min(painted.keySet(), Comparator.comparingInt(o -> o.y)).y;
+        int minX = Collections.min(painted.keySet(), Comparator.comparingInt(o -> o.get(0))).get(0);
+        int minY = Collections.min(painted.keySet(), Comparator.comparingInt(o -> o.get(1))).get(1);
 
-        int maxX = Collections.max(painted.keySet(), Comparator.comparingInt(o -> o.x)).x;
-        int maxY = Collections.max(painted.keySet(), Comparator.comparingInt(o -> o.y)).y;
+        int maxX = Collections.max(painted.keySet(), Comparator.comparingInt(o -> o.get(0))).get(0);
+        int maxY = Collections.max(painted.keySet(), Comparator.comparingInt(o -> o.get(1))).get(1);
 
         BufferedImage bufferedImage = new BufferedImage(maxX - minX + 1, maxY - minY + 1, BufferedImage.TYPE_BYTE_BINARY);
 
