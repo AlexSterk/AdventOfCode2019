@@ -61,7 +61,7 @@ public class Day12 {
             for (int i = 0; i < periods.size(); i++) {
                 boolean match = true;
                 for (int j = 0; j < initialP.size(); j++) {
-                    match = match && (initialP.get(j).get(i) == moonPositions.get(j).get(i) || initialV.get(j).get(i) == velocities.get(j).get(i));
+                    match = match && (initialP.get(j).get(i) == moonPositions.get(j).get(i) && initialV.get(j).get(i) == velocities.get(j).get(i));
                 }
                 if (match && periods.get(i) == null) {
                     periods.set(i, c);
@@ -69,7 +69,7 @@ public class Day12 {
             }
         }
         System.out.println(periods);
-        System.out.println(periods.stream().mapToLong(x -> x).reduce(Day12::lcm).getAsLong() * 2);
+        System.out.println(periods.stream().mapToLong(x -> x).reduce(Day12::lcm).getAsLong());
     }
 
     private static long gcd(long a, long b) {
