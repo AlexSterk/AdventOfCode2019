@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -24,27 +25,16 @@ public class Day14 {
             this.output = new ReactionPair(right);
         }
 
-        public Reaction scale(int factor) {
-            return new Reaction(input.stream().map(r -> r.scale(factor)).collect(Collectors.toList()), output.scale(factor));
-        }
-
-        public boolean requires(String chemical) {
-            for (ReactionPair reactionPair : input) {
-                if (reactionPair.chemical.equals(chemical)) return true;
-            }
-            return false;
-        }
-
         @Override
         public String toString() {
             return input + " => " + output;
         }
     }
     public static class ReactionPair {
-        public final int quantity;
+        public final BigInteger quantity;
         public final String chemical;
 
-        public ReactionPair(int quantity, String chemical) {
+        public ReactionPair(BigInteger quantity, String chemical) {
             this.quantity = quantity;
             this.chemical = chemical;
         }
@@ -52,12 +42,8 @@ public class Day14 {
         public ReactionPair(String pair) {
             String[] s = pair.split(" ");
 
-            this.quantity = Integer.parseInt(s[0]);
+            this.quantity = new BigInteger(s[0]);
             this.chemical = s[1];
-        }
-
-        public ReactionPair scale(int factor) {
-            return new ReactionPair(quantity * factor, chemical);
         }
 
         @Override
@@ -69,30 +55,44 @@ public class Day14 {
     public static void main(String[] args) throws IOException {
         Map<String, Reaction> keyProducedByBalue = Files.lines(Paths.get("AoC/resources/day14.txt")).map(Reaction::new).collect(Collectors.toMap(r -> r.output.chemical, r -> r));
 
-        int ore = getOre(keyProducedByBalue);
+        BigInteger ore = getOre(keyProducedByBalue, BigInteger.ONE);
 
         System.out.println(ore);
+
+        BigInteger trillion = new BigInteger("1000000000000");
+        BigInteger lowerBound = BigInteger.ZERO;
+        BigInteger upperBound = trillion;
+
+        BigInteger toTry = null;
+        while (upperBound.subtract(lowerBound).compareTo(BigInteger.ONE) == 1) {
+            toTry = lowerBound.add(upperBound.subtract(lowerBound).divide(BigInteger.TWO));
+            BigInteger oreNeeded = getOre(keyProducedByBalue, toTry);
+            int compare = oreNeeded.compareTo(trillion);
+            if (compare == 1) upperBound = toTry;
+            if (compare == -1) lowerBound = toTry;
+        }
+        System.out.println(lowerBound);
     }
 
-    private static int getOre(Map<String, Reaction> keyProducedByBalue) {
+    private static BigInteger getOre(Map<String, Reaction> keyProducedByBalue, BigInteger qt) {
         LinkedList<ReactionPair> needed = new LinkedList<>();
-        needed.add(new ReactionPair(1, "FUEL"));
-        Map<String, Integer> surplus = new HashMap<>();
+        needed.add(new ReactionPair(qt, "FUEL"));
+        Map<String, BigInteger> surplus = new HashMap<>();
 
-        int ore = 0;
+        BigInteger ore = BigInteger.ZERO;
 
         while (!needed.isEmpty()) {
             ReactionPair pair = needed.poll();
 
-            Map<String, Integer> ingredientsNeeded = getNeeded(keyProducedByBalue, pair, surplus);
+            Map<String, BigInteger> ingredientsNeeded = getNeeded(keyProducedByBalue, pair, surplus);
 
-            ore += ingredientsNeeded.getOrDefault("ORE", 0);
+            ore = ore.add(ingredientsNeeded.getOrDefault("ORE", BigInteger.ZERO));
 
             ingredientsNeeded.forEach((s, integer) -> {
                 for (int i = 0; i < needed.size(); i++) {
                     ReactionPair pair1 = needed.get(i);
                     if (pair1.chemical.equals(s)) {
-                        needed.set(i, new ReactionPair(pair1.quantity + integer, s));
+                        needed.set(i, new ReactionPair(pair1.quantity.add(integer), s));
                         return;
                     }
                 }
@@ -102,21 +102,23 @@ public class Day14 {
         return ore;
     }
 
-    private static Map<String, Integer> getNeeded(Map<String, Reaction> keyProducedByBalue, ReactionPair pair, Map<String, Integer> surplus) {
+    private static Map<String, BigInteger> getNeeded(Map<String, Reaction> keyProducedByBalue, ReactionPair pair, Map<String, BigInteger> surplus) {
         Reaction reaction = keyProducedByBalue.get(pair.chemical);
         if (reaction == null) return Collections.emptyMap();
-        Integer factor = (pair.quantity + reaction.output.quantity - 1) / reaction.output.quantity;
+        BigInteger factor = pair.quantity.add(reaction.output.quantity).subtract(BigInteger.ONE).divide(reaction.output.quantity);
+//        = (pair.quantity + reaction.output.quantity - 1) / reaction.output.quantity;
 
-        Integer surpl = factor * reaction.output.quantity - pair.quantity;
-        surplus.computeIfPresent(pair.chemical, (a, b) -> b + surpl);
+        BigInteger surpl = factor.multiply(reaction.output.quantity).subtract(pair.quantity);
+//        = factor * reaction.output.quantity - pair.quantity;
+        surplus.computeIfPresent(pair.chemical, (a, b) -> b.add(surpl));
         surplus.putIfAbsent(pair.chemical, surpl);
 
-        Map<String, Integer> needed = new HashMap<>();
+        Map<String, BigInteger> needed = new HashMap<>();
         for (ReactionPair ingredient : reaction.input) {
-            int totalNeeded = ingredient.quantity * factor;
-            int leftover = Math.min(totalNeeded, surplus.getOrDefault(ingredient.chemical, 0));
-            totalNeeded -= leftover;
-            surplus.computeIfPresent(ingredient.chemical, (c, n) -> n - leftover);
+            BigInteger totalNeeded = ingredient.quantity.multiply(factor);
+            BigInteger leftover = totalNeeded.min(surplus.getOrDefault(ingredient.chemical, BigInteger.ZERO));
+            totalNeeded = totalNeeded.subtract(leftover);
+            surplus.computeIfPresent(ingredient.chemical, (c, n) -> n.subtract(leftover));
             needed.put(ingredient.chemical, totalNeeded);
         }
         return needed;
