@@ -14,7 +14,7 @@ public class Day9 {
     }
 
     private static void partOne() throws IOException {
-        String inputString = Files.readString(Paths.get("resources/day9.txt"));
+        String inputString = Files.readString(Paths.get("AoC/resources/day9.txt"));
         List<Long> initialState = Stream.of(inputString.split("[,\n]")).map(Long::parseLong).collect(Collectors.toList());
 
         Stack<Long> in = new Stack<>();
@@ -26,7 +26,7 @@ public class Day9 {
     }
 
     private static void partTwo() throws IOException {
-        String inputString = Files.readString(Paths.get("resources/day9.txt"));
+        String inputString = Files.readString(Paths.get("AoC/resources/day9.txt"));
         List<Long> initialState = Stream.of(inputString.split("[,\n]")).map(Long::parseLong).collect(Collectors.toList());
 
         Stack<Long> in = new Stack<>();
@@ -38,7 +38,7 @@ public class Day9 {
     }
 
     private static void test() throws IOException {
-        List<List<Long>> programs = Files.lines(Paths.get("resources/day9-test.txt")).map(l -> l.split(",")).map(List::of).map(l -> l.stream().map(Long::parseLong).collect(Collectors.toList())).collect(Collectors.toList());
+        List<List<Long>> programs = Files.lines(Paths.get("AoC/resources/day9-test.txt")).map(l -> l.split(",")).map(List::of).map(l -> l.stream().map(Long::parseLong).collect(Collectors.toList())).collect(Collectors.toList());
 
         for (List<Long> program : programs) {
             Stack<Long> in = new Stack<>();

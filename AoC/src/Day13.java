@@ -103,10 +103,9 @@ public class Day13 {
         public static void main(String[] args) throws IOException {
             String inputString = Files.readString(Paths.get("AoC/resources/day13.txt"));
             List<Long> initialState = Stream.of(inputString.split("[,\n]")).map(Long::parseLong).collect(Collectors.toList());
-
             initialState.set(0, 2L);
-
             IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, new Stack<>(), new Stack<>());
+            Game game = new Game(cpu);
         }
 
         private Game(IntCodeInterpreter cpu) {
