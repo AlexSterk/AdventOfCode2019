@@ -116,12 +116,11 @@ public class Day15 {
         try {
             position.exploreNeighbours(new HashSet<>(), null);
         } catch (AssertionError e) {
-            List<Long> broken = Node.moves.stream().filter(l -> (long) l.get(2) > 0).map(l -> (Direction) l.get(1)).map(d -> d.command).map(i -> (long) i).collect(Collectors.toList());
-
+            List<Direction> broken = Node.moves.stream().filter(l -> (long) l.get(2) > 0).map(l -> (Direction) l.get(1)).collect(Collectors.toList());
             System.out.println(broken);
-
+            // [NORTH, NORTH, NORTH, NORTH, NORTH, NORTH, NORTH, NORTH, EAST, EAST, NORTH, NORTH, EAST, EAST, EAST, EAST]
             IntCodeInterpreter cpu2 = new IntCodeInterpreter(program);
-            cpu2.in.addAll(broken);
+            broken.forEach(d -> cpu2.in.offer((long) d.command));
 
             cpu2.run();
             System.out.println(cpu2.out);
