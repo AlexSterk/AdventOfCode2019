@@ -14,6 +14,14 @@ public class IntCodeInterpreter {
     private int relBase = 0;
     private Map<Long, Long> extraMemory = new HashMap<>();
 
+    public IntCodeInterpreter(String program) {
+        this(Stream.of(program.split("[^0-9]+")).map(Long::parseLong).collect(Collectors.toList()));
+    }
+
+    public IntCodeInterpreter(List<Long> program) {
+        this(program, new Stack<>(), new Stack<>());
+    }
+
     public IntCodeInterpreter(List<Long> program, Stack<Long> in, Stack<Long> out) {
         this.program = new ArrayList<>(program);
         this.in = in;
