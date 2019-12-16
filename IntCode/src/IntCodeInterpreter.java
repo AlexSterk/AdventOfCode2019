@@ -7,8 +7,8 @@ import java.util.stream.Stream;
 
 public class IntCodeInterpreter {
     private final List<Long> program;
-    public final Stack<Long> in;
-    public final Stack<Long> out;
+    public final Queue<Long> in;
+    public final Queue<Long> out;
     private int pointer = 0;
     private boolean halted = false;
     private int relBase = 0;
@@ -19,10 +19,10 @@ public class IntCodeInterpreter {
     }
 
     public IntCodeInterpreter(List<Long> program) {
-        this(program, new Stack<>(), new Stack<>());
+        this(program, new LinkedList<>(), new LinkedList<>());
     }
 
-    public IntCodeInterpreter(List<Long> program, Stack<Long> in, Stack<Long> out) {
+    public IntCodeInterpreter(List<Long> program, Queue<Long> in, Queue<Long> out) {
         this.program = new ArrayList<>(program);
         this.in = in;
         this.out = out;
@@ -73,7 +73,7 @@ public class IntCodeInterpreter {
                     if (in.isEmpty()) return false;
 
                     a1 = getMemory(++pointer);
-                    a2 = in.pop();
+                    a2 = in.poll();
 
                     if (isRelativeMode(fullOpCode, 2)) a1 += relBase;
 
@@ -83,7 +83,7 @@ public class IntCodeInterpreter {
                 case Output:
                     a1 = getMemory(++pointer);
                     if (isNotImmediateMode(fullOpCode, 2)) a1 = getArgument(fullOpCode, a1, 2);
-                    out.push(a1);
+                    out.offer(a1);
                     pointer++;
                     break;
                 case JumpIfTrue:
@@ -163,16 +163,14 @@ public class IntCodeInterpreter {
             String inputString = Files.readString(Paths.get(arg));
             List<Long> initialState = Stream.of(inputString.split("[,\n]")).map(Long::parseLong).collect(Collectors.toList());
 
-            Stack<Long> in = new Stack<>();
-            Stack<Long> out = new Stack<>();
-            IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, in, out);
+            IntCodeInterpreter cpu = new IntCodeInterpreter(initialState);
             boolean halted;
             Scanner scanner = new Scanner(System.in);
             do {
                 halted = cpu.run();
-            } while (!halted && in.push(scanner.nextLong()) != null);
+            } while (!halted && !cpu.in.offer(scanner.nextLong()));
             System.out.println("Output for: " + arg);
-            System.out.println(out);
+            System.out.println(cpu.out);
         }
     }
 }

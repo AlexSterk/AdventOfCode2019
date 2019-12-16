@@ -5,8 +5,9 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
+import java.util.Queue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -14,7 +15,7 @@ import java.util.stream.Stream;
 
 public class Day13 {
     public static void main(String[] args) throws IOException {
-//        partOne();
+        partOne();
         partTwo();
     }
 
@@ -22,20 +23,20 @@ public class Day13 {
         String inputString = Files.readString(Paths.get("AoC/resources/day13.txt"));
         List<Long> initialState = Stream.of(inputString.split("[,\n]")).map(Long::parseLong).collect(Collectors.toList());
 
-        Stack<Long> in = new Stack<>();
-        Stack<Long> out = new Stack<>();
+        LinkedList<Long> in = new LinkedList<>();
+        LinkedList<Long> out = new LinkedList<>();
         IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, in, out);
         cpu.run();
 
-        long width = IntStream.range(0,out.size()).filter(x -> x % 3 == 0).mapToLong(out::elementAt).max().getAsLong() + 1;
-        long height = IntStream.range(0,out.size()).filter(x -> x % 3 == 1).mapToLong(out::elementAt).max().getAsLong() + 1;
+        long width = IntStream.range(0,out.size()).filter(x -> x % 3 == 0).mapToLong(out::get).max().getAsLong() + 1;
+        long height = IntStream.range(0,out.size()).filter(x -> x % 3 == 1).mapToLong(out::get).max().getAsLong() + 1;
 
         long[][] board = new long[(int) height][(int) width];
 
         for (int i = 0; i < out.size(); i+=3) {
-            int x = Math.toIntExact(out.elementAt(i));
-            int y = Math.toIntExact(out.elementAt(i + 1));
-            Long v = out.elementAt(i + 2);
+            int x = Math.toIntExact(out.get(i));
+            int y = Math.toIntExact(out.get(i + 1));
+            Long v = out.get(i + 2);
 
             board[y][x] = v;
         }
@@ -52,13 +53,15 @@ public class Day13 {
 
         initialState.set(0, 2L);
 
-        IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, new Stack<>(), new Stack<>());
+        LinkedList<Long> in = new LinkedList<>();
+        LinkedList<Long> out = new LinkedList<>();
+        IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, in, out);
         cpu.run();
 
 //        Game game = new Game(cpu);
 
-        long width = IntStream.range(0,cpu.out.size()).filter(x -> x % 3 == 0).mapToLong(cpu.out::elementAt).max().getAsLong() + 1;
-        long height = IntStream.range(0,cpu.out.size()).filter(x -> x % 3 == 1).mapToLong(cpu.out::elementAt).max().getAsLong() + 1;
+        long width = IntStream.range(0,cpu.out.size()).filter(x -> x % 3 == 0).mapToLong(out::get).max().getAsLong() + 1;
+        long height = IntStream.range(0,cpu.out.size()).filter(x -> x % 3 == 1).mapToLong(out::get).max().getAsLong() + 1;
 
         long[][] board = new long[(int) height][(int) width];
 
@@ -69,7 +72,7 @@ public class Day13 {
             score = update[0] == null ? score : update[0];
             bx = update[1] == null ? bx : update[1];
             px = update[2] == null ? px : update[2];
-            cpu.in.push((long) Integer.signum(bx - px));
+            cpu.in.offer((long) Integer.signum(bx - px));
             halted = cpu.run();
         } while (!halted);
         Integer[] update = update(cpu.out, board);
@@ -77,14 +80,14 @@ public class Day13 {
         System.out.println(score);
     }
 
-    private static Integer[] update(Stack<Long> out, long[][] board) {
+    private static Integer[] update(Queue<Long> out, long[][] board) {
         Integer score = null;
         Integer bx = null;
         Integer px = null;
         while (!out.isEmpty()) {
-            int v = Math.toIntExact(out.pop());
-            int y = Math.toIntExact(out.pop());
-            int x = Math.toIntExact(out.pop());
+            int x = Math.toIntExact(out.poll());
+            int y = Math.toIntExact(out.poll());
+            int v = Math.toIntExact(out.poll());
 
             if (v == 4) bx = x;
             if (v == 3) px = x;
@@ -104,15 +107,15 @@ public class Day13 {
             String inputString = Files.readString(Paths.get("AoC/resources/day13.txt"));
             List<Long> initialState = Stream.of(inputString.split("[,\n]")).map(Long::parseLong).collect(Collectors.toList());
             initialState.set(0, 2L);
-            IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, new Stack<>(), new Stack<>());
+            IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, new LinkedList<>(), new LinkedList<>());
             Game game = new Game(cpu);
         }
 
         private Game(IntCodeInterpreter cpu) {
             cpu.run();
 
-            long width = IntStream.range(0,cpu.out.size()).filter(x -> x % 3 == 0).mapToLong(cpu.out::elementAt).max().getAsLong() + 1;
-            long height = IntStream.range(0,cpu.out.size()).filter(x -> x % 3 == 1).mapToLong(cpu.out::elementAt).max().getAsLong() + 1;
+            long width = IntStream.range(0,cpu.out.size()).filter(x -> x % 3 == 0).mapToLong(((LinkedList<Long>) cpu.out)::get).max().getAsLong() + 1;
+            long height = IntStream.range(0,cpu.out.size()).filter(x -> x % 3 == 1).mapToLong(((LinkedList<Long>) cpu.out)::get).max().getAsLong() + 1;
 
             long[][] board = new long[(int) height][(int) width];
 
@@ -143,7 +146,7 @@ public class Day13 {
                             default: return;
                         }
 
-                        cpu.in.push(in);
+                        cpu.in.offer(in);
                         halted = cpu.run();
                         Integer score = Day13.update(cpu.out, board)[0];
                         if (score != null) {
