@@ -12,7 +12,7 @@ public class Day15 {
 
         public final int x, y;
         public final IntCodeInterpreter cpu;
-        private Map<Direction, Node> neighbours;
+        private Map<DirectionY, Node> neighbours;
 
         public Node(int x, int y, IntCodeInterpreter cpu) {
             this.x = x;
@@ -20,18 +20,20 @@ public class Day15 {
             this.cpu = cpu;
         }
 
-        void exploreNeighbours(Set<Node> visited, Direction from) {
+        void exploreNeighbours(Set<Node> visited, DirectionY from) {
             if (visited.contains(this)) {
                 assert from == null || move(from) > 0;
                 return;
             }
             visited.add(this);
-            for (Direction dir : Direction.values()) {
+            for (DirectionY dir : DirectionY.values()) {
                 long out = move(dir);
                 if (out == 0) {
                     continue;
                 }
-                new Node(x+dir.vx,y+dir.vy,cpu).exploreNeighbours(visited, dir.opposite());
+                Node node = new Node(x + dir.vx, y + dir.vy, cpu);
+                nodes.add(node);
+                node.exploreNeighbours(visited, dir.opposite());
             }
             assert from == null || move(from) > 0;
         }
@@ -70,7 +72,7 @@ public class Day15 {
 //            return hasNeighbour ? node : null;
 //        }
 
-        private int move(Direction dir) {
+        private int move(DirectionY dir) {
             cpu.in.offer((long) dir.command);
             cpu.run();
             long out = cpu.out.poll();
@@ -109,6 +111,7 @@ public class Day15 {
 
     public static void main(String[] args) throws IOException {
         String program = Files.readString(Paths.get("AoC/resources/day15.txt"));
+
         IntCodeInterpreter cpu = new IntCodeInterpreter(program);
 
         Node position = new Node(0, 0, cpu);
@@ -116,7 +119,7 @@ public class Day15 {
         try {
             position.exploreNeighbours(new HashSet<>(), null);
         } catch (AssertionError e) {
-            List<Direction> broken = Node.moves.stream().filter(l -> (long) l.get(2) > 0).map(l -> (Direction) l.get(1)).collect(Collectors.toList());
+            List<DirectionY> broken = Node.moves.stream().filter(l -> (long) l.get(2) > 0).map(l -> (DirectionY) l.get(1)).collect(Collectors.toList());
             System.out.println(broken);
             // [NORTH, NORTH, NORTH, NORTH, NORTH, NORTH, NORTH, NORTH, EAST, EAST, NORTH, NORTH, EAST, EAST, EAST, EAST]
             IntCodeInterpreter cpu2 = new IntCodeInterpreter(program);
@@ -276,7 +279,7 @@ public class Day15 {
 
     }
 
-    public enum Direction {
+    public enum DirectionY {
         NORTH(1, 0, -1),
         EAST(4, 1, 0),
         WEST(3, -1, 0),
@@ -286,13 +289,13 @@ public class Day15 {
         public final int vx;
         public final int vy;
 
-        Direction(int command, int vx, int vy) {
+        DirectionY(int command, int vx, int vy) {
             this.command = command;
             this.vx = vx;
             this.vy = vy;
         }
 
-        public Direction opposite() {
+        public DirectionY opposite() {
             if (this == NORTH) return SOUTH;
             if (this == SOUTH) return NORTH;
             if (this == EAST) return WEST;
@@ -300,7 +303,7 @@ public class Day15 {
             return null;
         }
 
-        public Direction next() {
+        public DirectionY next() {
             if (this == NORTH) return EAST;
             if (this == EAST) return SOUTH;
             if (this == SOUTH) return WEST;
@@ -308,7 +311,7 @@ public class Day15 {
             return null;
         }
 
-        public Direction prev() {
+        public DirectionY prev() {
             return next().opposite();
         }
     }

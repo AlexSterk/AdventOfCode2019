@@ -15,7 +15,7 @@ public class IntCodeInterpreter {
     private Map<Long, Long> extraMemory = new HashMap<>();
 
     public IntCodeInterpreter(String program) {
-        this(Stream.of(program.split("[^0-9]+")).map(Long::parseLong).collect(Collectors.toList()));
+        this(Stream.of(program.split("[^-0-9]+")).map(Long::parseLong).collect(Collectors.toList()));
     }
 
     public IntCodeInterpreter(List<Long> program) {
@@ -161,7 +161,7 @@ public class IntCodeInterpreter {
     public static void main(String[] args) throws IOException {
         for (String arg : args) {
             String inputString = Files.readString(Paths.get(arg));
-            List<Long> initialState = Stream.of(inputString.split("[,\n]")).map(Long::parseLong).collect(Collectors.toList());
+            List<Long> initialState = Stream.of(inputString.split(",")).map(Long::parseLong).collect(Collectors.toList());
 
             IntCodeInterpreter cpu = new IntCodeInterpreter(initialState);
             boolean halted;
