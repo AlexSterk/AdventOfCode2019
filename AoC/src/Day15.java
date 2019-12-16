@@ -115,7 +115,7 @@ public class Day15 {
         Node.nodes.add(position);
         try {
             position.exploreNeighbours(new HashSet<>(), null);
-        } catch (Error e) {
+        } catch (AssertionError e) {
             List<Long> broken = Node.moves.stream().filter(l -> (long) l.get(2) > 0).map(l -> (Direction) l.get(1)).map(d -> d.command).map(i -> (long) i).collect(Collectors.toList());
 
             System.out.println(broken);
