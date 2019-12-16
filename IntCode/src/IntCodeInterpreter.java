@@ -106,7 +106,7 @@ public class IntCodeInterpreter {
                     if (isNotImmediateMode(fullOpCode, 1)) a2 = getArgument(fullOpCode, a2, 1);
                     if (isRelativeMode(fullOpCode, 0)) a3 += relBase;
 
-                    if (instruction.get() == OpCode.LessThan) setMemory(Math.toIntExact(a3), (long) ((a1 < a2) ? 1 : 0));
+                    if (instruction.get() == OpCode.LessThan) setMemory(Math.toIntExact(a3), (a1 < a2) ? 1 : 0);
                     else setMemory(a3, (a1.equals(a2)) ? 1 : 0);
 
                     pointer++;
@@ -128,7 +128,7 @@ public class IntCodeInterpreter {
     }
 
     private Long getArgument(String fullOpCode, Long a, int i) {
-        return getMemory(Math.toIntExact(a) + (isRelativeMode(fullOpCode, i) ? relBase : 0));
+        return getMemory(a + (isRelativeMode(fullOpCode, i) ? relBase : 0));
     }
 
     private static boolean isNotImmediateMode(String fullOpCode, int i) {
