@@ -4,30 +4,41 @@ import lombok.ToString;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class Day16 {
     public static void main(String[] args) throws IOException {
         test();
-        partOne();
-//        partTwo();
+//        partOne();
+        partTwo();
     }
 
     private static void test() throws IOException {
         int rounds = 100;
-        String input = Files.readString(Paths.get("AoC/resources/day16-test.txt"));
-        List<Pair> out = runFFT(rounds, input);
+        String input = Files.readString(Paths.get("AoC/resources/day16-test.txt")).repeat(10000);
+        List<Integer> fullInput = input.chars().mapToObj(Character::getNumericValue).collect(Collectors.toList());
+        int offset = Integer.parseInt(fullInput.subList(0, 7).stream().map(Object::toString).collect(Collectors.joining()));
+        System.out.println(offset);
 
-        System.out.println(out.stream().map(p -> Long.toString(p.value)).collect(Collectors.joining("")));
+        assert fullInput.size() < 2 * offset - 1;
+
+
+        List<Integer> in = new ArrayList<>(fullInput);
+        for (int i = 0; i < rounds; i++) {
+            int s = in.stream().skip(offset).mapToInt(j -> j).sum();
+            List<Integer> out = new ArrayList<>(Collections.nCopies(offset, 0));
+            out.add(s % 10);
+            for (int j = offset + 2; j < fullInput.size() + 1; j++) {
+                s -= in.get(j - 2);
+                out.add(s % 10);
+            }
+            in = out;
+        }
+        System.out.println(in.subList(offset, offset + 8));
     }
 
-    private static List<Pair> runFFT(int rounds, String input) {
-        List<Pair> in = IntStream.range(0, input.length()).mapToObj(i -> new Pair(i, Character.getNumericValue(input.charAt(i)))).collect(Collectors.toList());
+    private static List<Integer> runFFT(int rounds, List<Integer> in) {
         final List<Integer> pattern = Collections.unmodifiableList(List.of(0, 1, 0, -1));
 
         for (int i = 0; i < rounds; i++) {
@@ -36,21 +47,21 @@ public class Day16 {
         return in;
     }
 
-    private static List<Pair> getNewInput(List<Pair> in, final List<Integer> originalPattern) {
-        List<Pair> out = new ArrayList<>();
-
-        return IntStream.range(0, in.size()).mapToObj(i -> {
+    private static List<Integer> getNewInput(List<Integer> in, final List<Integer> originalPattern) {
+        List<Integer> out = new ArrayList<>();
+        for (int i = 0; i < in.size(); i++) {
             List<Integer> pattern = getNewPattern(originalPattern, i);
-            return getNthPair(in, i, pattern);
-        }).collect(Collectors.toList());
-//
-//
-//        for (int i = 0; i < in.size(); i++) {
-//            pattern = getNewPattern(originalPattern, i);
-//            Pair nthPair = getNthPair(in, i, pattern);
-//            out.add(nthPair);
-//        }
-//        return out;
+            out.add(getNthValue(in, pattern));
+        }
+        return out;
+    }
+
+    private static Integer getNthValue(List<Integer> in, List<Integer> pattern) {
+        int c = 0;
+        for (int i = 0; i < in.size(); i++) {
+            c += in.get(i) * pattern.get(i % pattern.size());
+        }
+        return Math.abs(c) % 10;
     }
 
     private static LinkedList<Integer> getNewPattern(List<Integer> pattern, int i) {
@@ -73,17 +84,33 @@ public class Day16 {
     private static void partOne() throws IOException {
         int rounds = 100;
         String input = Files.readString(Paths.get("AoC/resources/day16.txt"));
-        List<Pair> out = runFFT(rounds, input);
+        List<Integer> out = runFFT(rounds, input.chars().mapToObj(Character::getNumericValue).collect(Collectors.toList()));
 
-        System.out.println(out.stream().map(p -> Long.toString(p.value)).collect(Collectors.joining("")));
+        System.out.println(out.stream().map(Objects::toString).collect(Collectors.joining("")));
     }
 
     private static void partTwo() throws IOException {
-        int rounds = 1;
+        int rounds = 100;
         String input = Files.readString(Paths.get("AoC/resources/day16.txt")).repeat(10000);
-        List<Pair> out = runFFT(rounds, input);
+        List<Integer> fullInput = input.chars().mapToObj(Character::getNumericValue).collect(Collectors.toList());
+        int offset = Integer.parseInt(fullInput.subList(0, 7).stream().map(Object::toString).collect(Collectors.joining()));
+        System.out.println(offset);
 
-        System.out.println(out.stream().map(p -> Long.toString(p.value)).collect(Collectors.joining("")));
+        assert fullInput.size() < 2 * offset - 1;
+
+
+        List<Integer> in = new ArrayList<>(fullInput);
+        for (int i = 0; i < rounds; i++) {
+            int s = in.stream().skip(offset).mapToInt(j -> j).sum();
+            List<Integer> out = new ArrayList<>(Collections.nCopies(offset, 0));
+            out.add(s % 10);
+            for (int j = offset + 2; j < fullInput.size() + 1; j++) {
+                s -= in.get(j - 2);
+                out.add(s % 10);
+            }
+            in = out;
+        }
+        System.out.println(in.subList(offset, offset + 8).stream().map(Object::toString).collect(Collectors.joining()));
     }
 
     @AllArgsConstructor
