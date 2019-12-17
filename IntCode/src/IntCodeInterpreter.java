@@ -42,12 +42,12 @@ public class IntCodeInterpreter {
         executedInstructions.clear();
     }
 
-    private Long getMemory(long address) {
+    public Long getMemory(long address) {
         if (address < program.size()) return program.get(Math.toIntExact(address));
         return extraMemory.getOrDefault(address, 0L);
     }
 
-    private void setMemory(long address, long value) {
+    public void setMemory(long address, long value) {
         if (address < program.size()) program.set(Math.toIntExact(address), value);
         else extraMemory.put(address, value);
     }

@@ -46,20 +46,32 @@ public class Day17 {
         int sumAlignmentParameters = intersections.stream().mapToInt(n -> n.x * n.y).sum();
         System.out.println(sumAlignmentParameters);
 
-        // Part Two --- Finding
+        // Part Two --- Finding possible paths across the scaffolds
 
         Node start = new Node(robot.get(0), robot.get(1));
         start.findNeighbours(scaffolds);
-
         Set<List<Node>> allPaths = new HashSet<>();
         start.findPath(new ArrayList<>(), allPaths, scaffolds);
 
-        Vector finalRobot = robot;
-        List<Path> paths = allPaths.stream().map(l -> new Path(finalRobot, l.stream().skip(1).map(n -> new Vector(n.x, n.y)).collect(Collectors.toList()))).collect(Collectors.toList());
+        // Part Two --- Finding a path which meets the criteria of the movement logic
 
-        Path validPath = paths.stream().filter(Path::isValid).findAny().get();
-        System.out.println(validPath);
-        System.out.print(validPath.getMainFunction());
+        Vector finalRobot = robot;
+        Path validPath = allPaths.stream().map(l -> new Path(finalRobot, l.stream().skip(1).map(n -> new Vector(n.x, n.y)).collect(Collectors.toList()))).filter(Path::isValid).findAny().get();
+
+        // Part Two --- Running the robot again
+
+        cpu.reset();
+        cpu.setMemory(0, 2);
+        cpu.in.addAll(validPath.getMainFunction().chars().mapToLong(c -> c).boxed().collect(Collectors.toList()));
+        cpu.in.addAll(validPath.getMovementFunction("A").chars().mapToLong(c -> c).boxed().collect(Collectors.toList()));
+        cpu.in.addAll(validPath.getMovementFunction("B").chars().mapToLong(c -> c).boxed().collect(Collectors.toList()));
+        cpu.in.addAll(validPath.getMovementFunction("C").chars().mapToLong(c -> c).boxed().collect(Collectors.toList()));
+        cpu.in.add((long) 'n');
+        cpu.in.add((long) '\n');
+        System.out.println(cpu.run());
+
+        // Part Two --- Output
+        System.out.println(((LinkedList<Long>) cpu.out).getLast());
     }
 
     public static class Node {
