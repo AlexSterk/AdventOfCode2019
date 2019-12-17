@@ -1,3 +1,5 @@
+import misc.Direction;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -19,13 +21,13 @@ public class Day15 {
             this.cpu = cpu;
         }
 
-        void exploreNeighbours(Set<Node> visited, DirectionY from) {
+        void exploreNeighbours(Set<Node> visited, Direction from) {
             if (visited.contains(this)) {
                 assert from == null || move(from) > 0;
                 return;
             }
             visited.add(this);
-            for (DirectionY dir : DirectionY.values()) {
+            for (Direction dir : Direction.values()) {
                 long out = move(dir);
                 if (out == 0) {
                     continue;
@@ -39,7 +41,7 @@ public class Day15 {
             assert from == null || move(from) > 0;
         }
 
-        private int move(DirectionY dir) {
+        private int move(Direction dir) {
             cpu.in.offer((long) dir.command);
             cpu.run();
             long out = cpu.out.poll();
@@ -116,40 +118,4 @@ public class Day15 {
         return distances;
     }
 
-    public enum DirectionY {
-        NORTH(1, 0, -1),
-        EAST(4, 1, 0),
-        WEST(3, -1, 0),
-        SOUTH(2, 0, 1);
-
-        public final int command;
-        public final int vx;
-        public final int vy;
-
-        DirectionY(int command, int vx, int vy) {
-            this.command = command;
-            this.vx = vx;
-            this.vy = vy;
-        }
-
-        public DirectionY opposite() {
-            if (this == NORTH) return SOUTH;
-            if (this == SOUTH) return NORTH;
-            if (this == EAST) return WEST;
-            if (this == WEST) return EAST;
-            return null;
-        }
-
-        public DirectionY next() {
-            if (this == NORTH) return EAST;
-            if (this == EAST) return SOUTH;
-            if (this == SOUTH) return WEST;
-            if (this == WEST) return NORTH;
-            return null;
-        }
-
-        public DirectionY prev() {
-            return next().opposite();
-        }
-    }
 }

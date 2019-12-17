@@ -6,7 +6,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class IntCodeInterpreter {
-    private final List<Long> program;
+    private final List<Long> initialState;
+    private List<Long> program;
     public final Queue<Long> in;
     public final Queue<Long> out;
     public final List<IntCodeAST.Instruction> executedInstructions = new ArrayList<>();
@@ -24,9 +25,21 @@ public class IntCodeInterpreter {
     }
 
     public IntCodeInterpreter(List<Long> program, Queue<Long> in, Queue<Long> out) {
+        this.initialState = program;
         this.program = new ArrayList<>(program);
         this.in = in;
         this.out = out;
+    }
+
+    public void reset() {
+        program = new ArrayList<>(initialState);
+        in.clear();
+        out.clear();
+        pointer = 0;
+        relBase = 0;
+        extraMemory.clear();
+        halted = false;
+        executedInstructions.clear();
     }
 
     private Long getMemory(long address) {
