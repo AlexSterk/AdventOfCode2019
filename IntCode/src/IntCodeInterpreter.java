@@ -9,6 +9,7 @@ public class IntCodeInterpreter {
     private final List<Long> program;
     public final Queue<Long> in;
     public final Queue<Long> out;
+    public final List<IntCodeAST.Instruction> executedInstructions = new ArrayList<>();
     private int pointer = 0;
     private boolean halted = false;
     private int relBase = 0;
@@ -40,6 +41,7 @@ public class IntCodeInterpreter {
 
     public boolean run() {
         while (!halted) {
+            int currentPointer = pointer;
             Long opCode = program.get(pointer);
 
             String stringCode = String.valueOf(opCode);
@@ -51,84 +53,110 @@ public class IntCodeInterpreter {
                 return false;
             }
 
-            Long a1;
-            Long a2;
-            Long a3;
+            IntCodeAST.Argument a1;
+            IntCodeAST.Argument a2;
+            IntCodeAST.Argument a3;
             switch (instruction.get()) {
                 case Add:
                 case Multiply:
-                    a1 = getMemory(++pointer);
-                    a2 = getMemory(++pointer);
-                    a3 = getMemory(++pointer);
+                    a1 = new IntCodeAST.Argument.Abs(getMemory(++pointer));
+                    a2 = new IntCodeAST.Argument.Abs(getMemory(++pointer));
+                    a3 = new IntCodeAST.Argument.Abs(getMemory(++pointer));
 
-                    if (isNotImmediateMode(fullOpCode, 2)) a1 = getArgument(fullOpCode, a1, 2);
-                    if (isNotImmediateMode(fullOpCode, 1)) a2 = getArgument(fullOpCode, a2, 1);
-                    if (isRelativeMode(fullOpCode, 0)) a3 += relBase;
+                    if (isNotImmediateMode(fullOpCode, 2)) a1 = getArgument(fullOpCode, (IntCodeAST.Argument.Abs) a1, 2);
+                    if (isNotImmediateMode(fullOpCode, 1)) a2 = getArgument(fullOpCode, (IntCodeAST.Argument.Abs) a2, 1);
+                    if (isRelativeMode(fullOpCode, 0)) a3 = new IntCodeAST.Argument.Rel(a3.value + relBase, a3.value);
+                    else a3 = new IntCodeAST.Argument.Pos(a3.value, a3.value);
 
-                    setMemory(a3, (instruction.get() == OpCode.Add) ?  a1 + a2 : a1 * a2);
+                    setMemory(a3.value, (instruction.get() == OpCode.Add) ?  a1.value + a2.value : a1.value * a2.value);
                     pointer++;
+
+                    executedInstructions.add((instruction.get() == OpCode.Add) ? new IntCodeAST.Instruction.Add(relBase, currentPointer, a1, a2, (IntCodeAST.Argument.PositionalArgument) a3) : new IntCodeAST.Instruction.Mul(relBase, currentPointer, a1, a2, (IntCodeAST.Argument.PositionalArgument) a3));
 
                     break;
                 case Input:
                     if (in.isEmpty()) return false;
 
-                    a1 = getMemory(++pointer);
-                    a2 = in.poll();
+                    a1 = new IntCodeAST.Argument.Abs(getMemory(++pointer));
+                    a2 = new IntCodeAST.Argument.Abs(in.poll());
 
-                    if (isRelativeMode(fullOpCode, 2)) a1 += relBase;
+                    if (isRelativeMode(fullOpCode, 2)) a1 = new IntCodeAST.Argument.Rel(a1.value + relBase, a1.value);
+                    else a1 = new IntCodeAST.Argument.Pos(a1.value, a1.value);
 
-                    setMemory(Math.toIntExact(a1), a2);
+                    setMemory(Math.toIntExact(a1.value), a2.value);
                     pointer++;
+
+                    executedInstructions.add(new IntCodeAST.Instruction.In(relBase, pointer, (IntCodeAST.Argument.PositionalArgument) a1, (IntCodeAST.Argument.Abs) a2));
+
                     break;
                 case Output:
-                    a1 = getMemory(++pointer);
-                    if (isNotImmediateMode(fullOpCode, 2)) a1 = getArgument(fullOpCode, a1, 2);
-                    out.offer(a1);
+                    a1 = new IntCodeAST.Argument.Abs(getMemory(++pointer));
+                    if (isNotImmediateMode(fullOpCode, 2)) a1 = getArgument(fullOpCode, (IntCodeAST.Argument.Abs) a1, 2);
+                    out.offer(a1.value);
                     pointer++;
+
+                    executedInstructions.add(new IntCodeAST.Instruction.Out(relBase, pointer, a1));
+
                     break;
                 case JumpIfTrue:
                 case JumpIfFalse:
-                    a1 = getMemory(++pointer);
-                    a2 = getMemory(++pointer);
+                    a1 = new IntCodeAST.Argument.Abs(getMemory(++pointer));
+                    a2 = new IntCodeAST.Argument.Abs(getMemory(++pointer));
 
-                    if (isNotImmediateMode(fullOpCode, 2)) a1 = getArgument(fullOpCode, a1, 2);
-                    if (isNotImmediateMode(fullOpCode, 1)) a2 = getArgument(fullOpCode, a2, 1);
+                    if (isNotImmediateMode(fullOpCode, 2)) a1 = getArgument(fullOpCode, (IntCodeAST.Argument.Abs) a1, 2);
+                    if (isNotImmediateMode(fullOpCode, 1)) a2 = getArgument(fullOpCode, (IntCodeAST.Argument.Abs) a2, 1);
 
-                    pointer = Math.toIntExact((instruction.get() == OpCode.JumpIfTrue && a1 != 0 || instruction.get() == OpCode.JumpIfFalse && a1 == 0) ? a2 : pointer + 1);
+                    pointer = Math.toIntExact((instruction.get() == OpCode.JumpIfTrue && a1.value != 0 || instruction.get() == OpCode.JumpIfFalse && a1.value == 0) ? a2.value : pointer + 1);
+
+                    executedInstructions.add((instruction.get() == OpCode.JumpIfTrue) ? new IntCodeAST.Instruction.JumpIfTrue(relBase, currentPointer, a1, a2) : new IntCodeAST.Instruction.JumpIfFalse(relBase, currentPointer, a1, a2));
+
                     break;
                 case LessThan:
                 case Equals:
-                    a1 = getMemory(++pointer);
-                    a2 = getMemory(++pointer);
-                    a3 = getMemory(++pointer);
+                    a1 = new IntCodeAST.Argument.Abs(getMemory(++pointer));
+                    a2 = new IntCodeAST.Argument.Abs(getMemory(++pointer));
+                    a3 = new IntCodeAST.Argument.Abs(getMemory(++pointer));
 
-                    if (isNotImmediateMode(fullOpCode, 2)) a1 = getArgument(fullOpCode, a1, 2);
-                    if (isNotImmediateMode(fullOpCode, 1)) a2 = getArgument(fullOpCode, a2, 1);
-                    if (isRelativeMode(fullOpCode, 0)) a3 += relBase;
+                    if (isNotImmediateMode(fullOpCode, 2)) a1 = getArgument(fullOpCode, (IntCodeAST.Argument.Abs) a1, 2);
+                    if (isNotImmediateMode(fullOpCode, 1)) a2 = getArgument(fullOpCode, (IntCodeAST.Argument.Abs) a2, 1);
+                    if (isRelativeMode(fullOpCode, 0)) a3 = new IntCodeAST.Argument.Rel(a3.value + relBase, a3.value);
+                    else a3 = new IntCodeAST.Argument.Pos(a3.value, a3.value);
 
-                    if (instruction.get() == OpCode.LessThan) setMemory(Math.toIntExact(a3), (a1 < a2) ? 1 : 0);
-                    else setMemory(a3, (a1.equals(a2)) ? 1 : 0);
+
+                    if (instruction.get() == OpCode.LessThan) setMemory(Math.toIntExact(a3.value), (a1.value < a2.value) ? 1 : 0);
+                    else setMemory(a3.value, (a1.value == a2.value) ? 1 : 0);
 
                     pointer++;
+
+                    executedInstructions.add((instruction.get() == OpCode.LessThan) ? new IntCodeAST.Instruction.LessThan(relBase, currentPointer, a1, a2, (IntCodeAST.Argument.PositionalArgument) a3) : new IntCodeAST.Instruction.Equals(relBase, currentPointer, a1, a2, (IntCodeAST.Argument.PositionalArgument) a3));
+
                     break;
                 case AdjustBase:
-                    a1 = getMemory(++pointer);
+                    a1 = new IntCodeAST.Argument.Abs(getMemory(++pointer));
 
-                    if (isNotImmediateMode(fullOpCode, 2)) a1 = getArgument(fullOpCode, a1, 2);
+                    if (isNotImmediateMode(fullOpCode, 2)) a1 = getArgument(fullOpCode, (IntCodeAST.Argument.Abs) a1, 2);
 
-                    relBase += a1;
+                    relBase += a1.value;
                     pointer++;
+
+                    executedInstructions.add(new IntCodeAST.Instruction.AdjustBase(relBase, pointer, a1));
+
                     break;
                 case Halt:
                     halted = true;
+
+                    executedInstructions.add(new IntCodeAST.Instruction.Halt(relBase, pointer));
+
                     return true;
             }
         }
         return halted;
     }
 
-    private Long getArgument(String fullOpCode, Long a, int i) {
-        return getMemory(a + (isRelativeMode(fullOpCode, i) ? relBase : 0));
+    private IntCodeAST.Argument getArgument(String fullOpCode, IntCodeAST.Argument.Abs a, int i) {
+        if ((isRelativeMode(fullOpCode, i)))
+            return new IntCodeAST.Argument.Rel(getMemory(a.value + relBase), a.value);
+        return new IntCodeAST.Argument.Pos(getMemory(a.value), a.value);
     }
 
     private static boolean isNotImmediateMode(String fullOpCode, int i) {
@@ -168,7 +196,7 @@ public class IntCodeInterpreter {
             Scanner scanner = new Scanner(System.in);
             do {
                 halted = cpu.run();
-            } while (!halted && !cpu.in.offer(scanner.nextLong()));
+            } while (!halted && cpu.in.offer(scanner.nextLong()));
             System.out.println("Output for: " + arg);
             System.out.println(cpu.out);
         }
