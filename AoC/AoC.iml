@@ -6,10 +6,10 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="13" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="IntCode" />
     <orderEntry type="module" module-name="util" />
-    <orderEntry type="library" name="org.projectlombok:lombok:1.18.8" level="project" />
+    <orderEntry type="library" name="org.projectlombok:lombok:1.18.10" level="project" />
   </component>
 </module>

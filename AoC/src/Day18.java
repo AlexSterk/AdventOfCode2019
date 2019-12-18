@@ -1,9 +1,3 @@
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import misc.Direction;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -11,244 +5,92 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Day18 {
-    public static class Maze {
-        public final Map<Node, Tile> map;
-        public final Map<Node, Node> nodeMap;
-        public final Node ENTRANCE;
-        public final Map<Pair<Node>, Integer> distanceMap = new HashMap<>();
-
-        private Map<Node, Node> predecessors;
-
-        public Maze(List<String> rows) {
-            map = new HashMap<>();
-            Node entrance = null;
-            for (int y = 0; y < rows.size(); y++) {
-                String s = rows.get(y);
-                for (int x = 0; x < s.length(); x++) {
-                    char c = s.charAt(x);
-                    Node n = new Node(x, y);
-                    if (c == '@') {
-                        map.put(n, Tile.EMPTY);
-                        entrance = n;
-                    }
-                    else if (c == '.') map.put(n, Tile.EMPTY);
-                    else if (Character.isLowerCase(c)) map.put(n, new Key(c, n));
-                    else if (Character.isUpperCase(c)) map.put(n, new Door(c, n));
-                }
-            }
-            ENTRANCE = entrance;
-            nodeMap = new HashMap<>();
-            map.keySet().forEach(n -> nodeMap.put(n, n));
-            map.keySet().forEach(n -> n.initNeighbours(this));
-        }
-
-        private void initShortestPaths() {
-            Map<Node, Integer> steps = new HashMap<>();
-            Map<Node, Node> predecessor = new HashMap<>();
-            Comparator<Node> comparator = Comparator.comparing(n -> steps.getOrDefault(n, Integer.MAX_VALUE));
-            steps.put(ENTRANCE, 0);
-            Set<Node> toVisit = new HashSet<>(map.keySet());
-
-            while (!toVisit.isEmpty()) {
-                Node current = Collections.min(toVisit, comparator);
-                Integer dist = steps.getOrDefault(current, Integer.MAX_VALUE);
-                int newDist = dist + 1;
-                for (Node neighbour : current.neighbours) {
-                    if (newDist < steps.getOrDefault(neighbour, Integer.MAX_VALUE)) {
-                        steps.put(neighbour, newDist);
-                        predecessor.put(neighbour, current);
-                    }
-                }
-                toVisit.remove(current);
-            }
-            this.predecessors = predecessor;
-        }
-
-        public List<Node> getPath(Node from, Node to) {
-            if (predecessors == null) initShortestPaths();
-
-            LinkedList<Node> path = new LinkedList<>();
-
-            Node current = to;
-            while (current != from) {
-                path.addFirst(current);
-                current = predecessors.get(current);
-                if (current == null) return getPath(to, from);
-            }
-            return path;
-        }
-
-        public Integer getDistance(Key from, Key to) {
-            return getDistance(from.node, to);
-        }
-
-        public Integer getDistance(Node from, Key to) {
-            Node n = to.node;
-            return distanceMap.computeIfAbsent(new Pair<>(from, n), (p -> getPath(p.one, p.two).size()));
-        }
-
-        public List<Key> keysRequired(Key key) {
-            List<Node> path = getPath(ENTRANCE, key.node);
-            return path.stream().map(map::get).filter(t -> t instanceof Door).map(t -> (Door) t).map(d -> new Key(Character.toLowerCase(d.letter), d.node)).collect(Collectors.toList());
-        }
-
-        public List<Key> isRequiredFor(Key key) {
-            return getKeys().stream().map(this::keysRequired).filter(l -> l.contains(key)).flatMap(Collection::stream).collect(Collectors.toList());
-        }
-
-        public Set<Key> getKeys() {
-            return map.values().stream().filter(t -> t instanceof Key).map(t -> (Key) t).collect(Collectors.toSet());
-        }
-
-        public Set<Door> getDoors() {
-            return map.values().stream().filter(t -> t instanceof Door).map(t -> (Door) t).collect(Collectors.toSet());
-        }
-    }
-
-    @Data
-    public static class Node {
-        public final int x,y;
-        @EqualsAndHashCode.Exclude
-        private Set<Node> neighbours;
-
-        public void initNeighbours(Maze m) {
-            if (neighbours != null) return;
-            neighbours = new HashSet<>();
-            for (Direction dir : Direction.values()) {
-                Node n = new Node(x + dir.vx, y + dir.vy);
-                if (m.map.containsKey(n)) neighbours.add(m.nodeMap.get(n));
-            }
-        }
-
-        @Override
-        public String toString() {
-            return String.format("(%d, %d)", x, y);
-        }
-
-        public List<Node> findPath(Node to, Maze m) {
-            Map<Node, Integer> steps = new HashMap<>();
-            Map<Node, Node> predecessor = new HashMap<>();
-            Comparator<Node> comparator = Comparator.comparing(n -> steps.getOrDefault(n, Integer.MAX_VALUE));
-            steps.put(this, 0);
-            Set<Node> toVisit = new HashSet<>(m.map.keySet());
-
-            while (!toVisit.isEmpty()) {
-                Node current = Collections.min(toVisit, comparator);
-                if (current == to) break;
-                Integer dist = steps.getOrDefault(current, Integer.MAX_VALUE);
-                int newDist = dist + 1;
-                for (Node neighbour : current.neighbours) {
-                    if (newDist < steps.getOrDefault(neighbour, Integer.MAX_VALUE)) {
-                        steps.put(neighbour, newDist);
-                        predecessor.put(neighbour, current);
-                    }
-                }
-                toVisit.remove(current);
-            }
-
-            LinkedList<Node> path = new LinkedList<>();
-
-            Node current = to;
-            while (current != this) {
-                path.addFirst(current);
-                current = predecessor.get(current);
-            }
-
-            return path;
-        }
-    }
-
-    @EqualsAndHashCode
-    public static class Tile {
-        public static final Tile EMPTY = new Tile();
-
-        @Override
-        public String toString() {
-            if (this == EMPTY) {
-                return "Empty";
-            }
-            return super.toString();
-        }
-    }
-
-    @EqualsAndHashCode(callSuper = true)
-    @Data
-    public static class Key extends Tile {
-        public final char letter;
-        @EqualsAndHashCode.Exclude
-        public final Node node;
-
-        @Override
-        public String toString() {
-            return "Key(" + letter + ")";
-        }
-
-    }
-
-    @Data
-    @EqualsAndHashCode(callSuper = true)
-    public static class Door extends Tile {
-        public final char letter;
-        @EqualsAndHashCode.Exclude
-        public final Node node;
-
-        @Override
-        public String toString() {
-            return "Door(" + letter + ")";
-        }
-    }
-
-    @RequiredArgsConstructor
     public static class MazeRunner {
-        public final Maze maze;
-        @NonNull
-        private Node position;
-        public final Set<Key> ownedKeys = new HashSet<>();
+        public final Map<Tuple2<Set<Tuple2<Integer, Integer>>, String>, Integer> memory = new HashMap<>();
 
-        public Set<Door> getUnlockedDoors() {
-            HashSet<Tile> tiles = new HashSet<>(maze.map.values());
-            tiles.removeIf(t -> !(t instanceof Door));
-            tiles.removeIf(t -> !ownedKeys.contains(Character.toLowerCase(((Door) t).letter)));
-            HashSet<Door> doors = new HashSet<>();
-            tiles.forEach(t -> doors.add((Door) t));
-            return doors;
-        }
+        public Map<Character, Tuple2<Integer, Tuple2<Integer, Integer>>> canReach(char[][] grid, Tuple2<Integer, Integer> from, String owned) {
+            Queue<Tuple2<Integer, Integer>> toVisit = new LinkedList<>();
+            Map<Character, Tuple2<Integer, Tuple2<Integer, Integer>>> keys = new TreeMap<>();
+            Map<Tuple2<Integer, Integer>, Integer> distances = new HashMap<>();
+            distances.put(from, 0);
+            toVisit.add(from);
 
-        public Set<Door> getLockedDoors() {
-            HashSet<Tile> tiles = new HashSet<>(maze.map.values());
-            tiles.removeIf(t -> !(t instanceof Door));
-            tiles.removeIf(t -> ownedKeys.contains(Character.toLowerCase(((Door) t).letter)));
-            HashSet<Door> doors = new HashSet<>();
-            tiles.forEach(t -> doors.add((Door) t));
-            return doors;
-        }
-
-        public Map<Key, Node> getAvailableKeys() {
-            Map<Key, Node> keys = new HashMap<>();
-
-            Queue<Node> toVisit = new LinkedList<>();
-            Set<Node> visited = new HashSet<>();
-            toVisit.add(position);
             while (!toVisit.isEmpty()) {
-                Node n = toVisit.poll();
-                visited.add(n);
-                for (Node neighbour : n.neighbours) {
-                    if (visited.contains(neighbour)) continue;
-                    Tile tile = maze.map.get(neighbour);
-                    if (tile == Tile.EMPTY) toVisit.add(neighbour);
-                    else if (tile instanceof Key) {
-                        toVisit.add(neighbour);
-                        keys.put((Key) tile, neighbour);
-                    }
+                Tuple2<Integer, Integer> current = toVisit.poll();
+                for (Tuple2<Integer, Integer> neighbour : Set.of(new Tuple2<>(current.first + 1, current.second),
+                        new Tuple2<>(current.first - 1, current.second), new Tuple2<>(current.first, current.second + 1), new Tuple2<>(current.first, current.second - 1))) {
+                    if (neighbour.second >= grid.length || neighbour.first >= grid[0].length) continue;
+                    char c = grid[neighbour.second][neighbour.first];
+                    if (c == '#') continue;
+
+
+
+                    if (distances.containsKey(neighbour)) continue;
+                    distances.put(neighbour, distances.get(current) + 1);
+
+
+                    boolean doesNotHaveKey = owned.indexOf(Character.toLowerCase(c)) < 0;
+                    if (Character.isUpperCase(c) && doesNotHaveKey) {
+                        continue;
+                    } if (Character.isLowerCase(c) && doesNotHaveKey) {
+                        keys.put(c, new Tuple2<>(distances.get(neighbour), neighbour));
+                    } else toVisit.offer(neighbour);
                 }
             }
 
             return keys;
         }
+
+        public Map<Character, Tuple3<Integer, Tuple2<Integer, Integer>, Tuple2<Integer, Integer>>> canReach(char[][] grid, Set<Tuple2<Integer, Integer>> froms, String owned) {
+            Map<Character, Tuple3<Integer, Tuple2<Integer, Integer>, Tuple2<Integer, Integer>>> keys = new TreeMap<>();
+            for (Tuple2<Integer, Integer> from : froms) {
+                Map<Character, Tuple2<Integer, Tuple2<Integer, Integer>>> out = canReach(grid, from, owned);
+                out.forEach((k, p) -> keys.put(k, new Tuple3<>(p.first, p.second, from)));
+            }
+            return keys;
+        }
+
+        public int findWalk(char[][] grid, Set<Tuple2<Integer, Integer>> froms, String owned) {
+            int toRet = 0;
+            String sorted = sortString(owned);
+            if (memory.containsKey(new Tuple2<>(froms, sorted))) return memory.get(new Tuple2<>(froms, sorted));
+
+            Map<Character, Tuple3<Integer, Tuple2<Integer, Integer>, Tuple2<Integer, Integer>>> canCollect = canReach(grid, froms, owned);
+            if (!canCollect.isEmpty()) {
+                ArrayList<Integer> dists = new ArrayList<>();
+                canCollect.forEach((k, t) -> {
+                    Set<Tuple2<Integer, Integer>> nFroms = froms.stream().map(from -> from == t.third ? t.second : from).collect(Collectors.toSet());
+                    String nOwned = owned + k;
+                    int nDist = t.first + findWalk(grid, nFroms, nOwned);
+                    dists.add(nDist);
+                });
+                toRet = Collections.min(dists);
+            }
+            memory.put(new Tuple2<>(froms, sorted), toRet);
+            return toRet;
+        }
+
+        private String sortString(String s) {
+            char[] chars = s.toCharArray();
+            Arrays.sort(chars);
+            return new String(chars);
+        }
     }
 
     public static void main(String[] args) throws IOException {
-        Maze maze = new Maze(Files.readAllLines(Paths.get("AoC/resources/day18.txt")));
-        System.out.println(maze.getKeys().stream().filter(key -> maze.isRequiredFor(key).isEmpty()).collect(Collectors.toSet()));
+        List<String> rows = Files.readAllLines(Paths.get("AoC/resources/day18-2.txt"));
+        MazeRunner mazeRunner = new MazeRunner();
+        HashSet<Tuple2<Integer, Integer>> froms = new HashSet<>();
+
+        char[][] grid = new char[rows.size()][rows.get(0).length()];
+        for (int y = 0; y < rows.size(); y++) {
+            String row = rows.get(y);
+            for (int x = 0; x < row.length(); x++) {
+                grid[y][x] = row.charAt(x);
+                if (row.charAt(x) == '@') froms.add(new Tuple2<>(y, x));
+            }
+        }
+
+        System.out.println(mazeRunner.findWalk(grid, froms, ""));
     }
 }
