@@ -19,6 +19,7 @@ public class Day19 {
         while (true) {
             while (!inTractorBeam(x, y, cpu)) x++;
             if (inTractorBeam(x+99, y-99, cpu)) {
+                System.out.println(x + " " + y);
                 System.out.println(10000*x+y-99);
                 break;
             }
