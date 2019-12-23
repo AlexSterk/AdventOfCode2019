@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 public class Day23 {
     public static void main(String[] args) throws IOException {
@@ -12,16 +13,29 @@ public class Day23 {
             cpu.run();
         }
         
-        Long Y;
-        outer: while (true) {
+        Long X = null, Y = null;
+        Long  prevY = null;
+        o: while (true) {
+            boolean idle = Arrays.stream(cpus).filter(cpu -> cpu.in.isEmpty() && cpu.out.isEmpty()).count() == cpus.length;
+            if (idle && X != null && Y != null) {
+                cpus[0].in.offer(X);
+                cpus[0].in.offer(Y);
+                
+                if (Y.equals(prevY)) {
+                    break o;
+                }
+                    
+                prevY = Y;
+            }
             for (IntCodeInterpreter cpu : cpus) {
                 while (!cpu.out.isEmpty()) {
                     Long address = cpu.out.poll();
                     Long x = cpu.out.poll();
                     Long y = cpu.out.poll();
                     if (address.equals(255L)) {
+                        X = x;
                         Y = y;
-                        break outer;
+                        continue;
                     }
                     IntCodeInterpreter recipient = cpus[Math.toIntExact(address)];
                     recipient.in.offer(x);
@@ -33,7 +47,7 @@ public class Day23 {
                 cpu.run();
             }
         }
-        System.out.println(Y);
+        System.out.println(prevY);
     }
 
     private static IntCodeInterpreter getCpu() throws IOException {
