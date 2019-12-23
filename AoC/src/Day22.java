@@ -166,6 +166,7 @@ class Combined extends CardShuffle {
 
     @Override
     public List apply(List list) {
-        return second.apply(first.apply(list));
+        List t = first.apply(list);
+        return second.apply(t);
     }
 }
