@@ -15,16 +15,16 @@ public class Day23 {
         
         Long X = null, Y = null;
         Long  prevY = null;
-        o: while (true) {
+        while (true) {
             boolean idle = Arrays.stream(cpus).filter(cpu -> cpu.in.isEmpty() && cpu.out.isEmpty()).count() == cpus.length;
             if (idle && X != null && Y != null) {
                 cpus[0].in.offer(X);
                 cpus[0].in.offer(Y);
-                
+
                 if (Y.equals(prevY)) {
-                    break o;
+                    break;
                 }
-                    
+
                 prevY = Y;
             }
             for (IntCodeInterpreter cpu : cpus) {
