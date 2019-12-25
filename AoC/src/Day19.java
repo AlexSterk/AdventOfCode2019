@@ -10,7 +10,7 @@ public class Day19 {
         partTwo(input);
     }
 
-    private static void partTwo(String input) {
+    private static void partTwo(String input) throws IOException {
         IntCodeInterpreter cpu = new IntCodeInterpreter(input);
 
         int y = 100;
@@ -18,31 +18,31 @@ public class Day19 {
 
         while (true) {
             while (!inTractorBeam(x, y, cpu)) x++;
-            if (inTractorBeam(x+99, y-99, cpu)) {
+            if (inTractorBeam(x + 99, y - 99, cpu)) {
                 System.out.println(x + " " + y);
-                System.out.println(10000*x+y-99);
+                System.out.println(10000 * x + y - 99);
                 break;
             }
             y++;
         }
     }
 
-    private static boolean inTractorBeam(int x, int y, IntCodeInterpreter cpu) {
+    private static boolean inTractorBeam(int x, int y, IntCodeInterpreter cpu) throws IOException {
         cpu.reset();
-        cpu.in.addAll(List.of((long) x, (long) y));
+        ((InterpreterQueue) cpu.in).addAll(List.of((long) x, (long) y));
         cpu.run();
-        return cpu.out.poll() == 1;
+        return ((InterpreterQueue) cpu.out).poll() == 1;
     }
 
-    private static void partOne(String input) {
+    private static void partOne(String input) throws IOException {
         IntCodeInterpreter cpu = new IntCodeInterpreter(input);
         int width = 50, height = 50;
         int totalPulled = 0;
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                cpu.in.addAll(List.of((long) x, (long) y));
+                ((InterpreterQueue) cpu.in).addAll(List.of((long) x, (long) y));
                 cpu.run();
-                Long poll = cpu.out.poll();
+                Long poll = ((InterpreterQueue) cpu.out).poll();
                 totalPulled += poll;
                 cpu.reset();
             }

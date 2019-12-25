@@ -11,21 +11,20 @@ import java.util.stream.Collectors;
 public class Day17 {
     public static void main(String[] args) throws IOException {
         IntCodeInterpreter cpu = new IntCodeInterpreter(Files.readString(Paths.get("AoC/resources/day17.txt")));
-        
+
         // Part One --- Running the bot and processing where the scaffolds are.
-        
+
         cpu.run();
         Set<Node> scaffolds = new HashSet<>();
         int x = 0, y = 0;
         Vector robot = null;
         List<Character> directions = List.of('^', '>', '<', 'v');
-        for (long currentPiece : cpu.out) {
+        for (long currentPiece : (InterpreterQueue) cpu.out) {
             char c = (char) currentPiece;
             System.out.print(c);
             if (directions.contains(c)) {
                 robot = new Vector(x, y, directions.indexOf(c) + 1);
-            }
-            else if (currentPiece == 35) {
+            } else if (currentPiece == 35) {
                 scaffolds.add(new Node(x, y));
             } else if (currentPiece == 10) {
                 x = 0;
@@ -62,12 +61,13 @@ public class Day17 {
 
         cpu.reset();
         cpu.setMemory(0, 2);
-        cpu.in.addAll(validPath.getMainFunction().chars().mapToLong(c -> c).boxed().collect(Collectors.toList()));
-        cpu.in.addAll(validPath.getMovementFunction("A").chars().mapToLong(c -> c).boxed().collect(Collectors.toList()));
-        cpu.in.addAll(validPath.getMovementFunction("B").chars().mapToLong(c -> c).boxed().collect(Collectors.toList()));
-        cpu.in.addAll(validPath.getMovementFunction("C").chars().mapToLong(c -> c).boxed().collect(Collectors.toList()));
-        cpu.in.add((long) 'n');
-        cpu.in.add((long) '\n');
+        InterpreterQueue in = (InterpreterQueue) cpu.in;
+        in.addAll(validPath.getMainFunction().chars().mapToLong(c -> c).boxed().collect(Collectors.toList()));
+        in.addAll(validPath.getMovementFunction("A").chars().mapToLong(c -> c).boxed().collect(Collectors.toList()));
+        in.addAll(validPath.getMovementFunction("B").chars().mapToLong(c -> c).boxed().collect(Collectors.toList()));
+        in.addAll(validPath.getMovementFunction("C").chars().mapToLong(c -> c).boxed().collect(Collectors.toList()));
+        in.add((long) 'n');
+        in.add((long) '\n');
         System.out.println(cpu.run());
 
         // Part Two --- Output
@@ -157,7 +157,8 @@ public class Day17 {
                 Direction currentlyFacing = null, newDirection = null;
                 for (Direction dir : Direction.values()) {
                     if (dir.command == position.get(2)) currentlyFacing = dir;
-                    if (new Vector(position.get(0), position.get(1)).add(new Vector(dir.vx, dir.vy)).equals(nextStep)) newDirection = dir;
+                    if (new Vector(position.get(0), position.get(1)).add(new Vector(dir.vx, dir.vy)).equals(nextStep))
+                        newDirection = dir;
                 }
 
                 if (currentlyFacing.next() == newDirection) {
@@ -167,14 +168,14 @@ public class Day17 {
                 }
                 count++;
                 if (turn != null) {
-                    if(count > 0) path.add(Integer.toString(count));
+                    if (count > 0) path.add(Integer.toString(count));
                     path.add(turn);
                     count = 0;
                 }
                 position = new Vector(nextStep.get(0), nextStep.get(1), newDirection.command);
             }
             count++;
-            if(count > 0) path.add(Integer.toString(count));
+            if (count > 0) path.add(Integer.toString(count));
         }
 
         @Override

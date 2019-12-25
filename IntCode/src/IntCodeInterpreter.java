@@ -8,23 +8,27 @@ import java.util.stream.Stream;
 public class IntCodeInterpreter {
     private final List<Long> initialState;
     private List<Long> program;
-    public final InterpreterQueue in;
-    public final InterpreterQueue out;
+    public final InterpreterInput in;
+    public final InterpreterOutput out;
     public final List<IntCodeAST.Instruction> executedInstructions = new ArrayList<>();
     private int pointer = 0;
     private boolean halted = false;
     private int relBase = 0;
     private Map<Long, Long> extraMemory = new HashMap<>();
 
+    private static List<Long> toProgram(String program) {
+        return Stream.of(program.split("[^-0-9]+")).map(Long::parseLong).collect(Collectors.toList());
+    }
+
     public IntCodeInterpreter(String program) {
-        this(Stream.of(program.split("[^-0-9]+")).map(Long::parseLong).collect(Collectors.toList()));
+        this(toProgram(program));
     }
 
     public IntCodeInterpreter(List<Long> program) {
         this(program, new InterpreterQueue(), new InterpreterQueue());
     }
 
-    public IntCodeInterpreter(List<Long> program, InterpreterQueue in, InterpreterQueue out) {
+    public IntCodeInterpreter(List<Long> program, InterpreterInput in, InterpreterOutput out) {
         this.initialState = program;
         this.program = new ArrayList<>(program);
         this.in = in;
@@ -52,7 +56,7 @@ public class IntCodeInterpreter {
         else extraMemory.put(address, value);
     }
 
-    public boolean run() {
+    public boolean run() throws IOException {
         while (!halted) {
             int currentPointer = pointer;
             Long opCode = program.get(pointer);
@@ -209,7 +213,8 @@ public class IntCodeInterpreter {
             Scanner scanner = new Scanner(System.in);
             do {
                 halted = cpu.run();
-            } while (!halted && cpu.in.write(scanner.nextLong()));
+                if (!halted) ((InterpreterQueue) cpu.in).write(scanner.nextLong());
+            } while (!halted);
             System.out.println("Output for: " + arg);
             System.out.println(cpu.out);
         }

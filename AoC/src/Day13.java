@@ -1,3 +1,5 @@
+import lombok.SneakyThrows;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
@@ -28,12 +30,12 @@ public class Day13 {
         IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, in, out);
         cpu.run();
 
-        long width = IntStream.range(0,out.size()).filter(x -> x % 3 == 0).mapToLong(out::get).max().getAsLong() + 1;
-        long height = IntStream.range(0,out.size()).filter(x -> x % 3 == 1).mapToLong(out::get).max().getAsLong() + 1;
+        long width = IntStream.range(0, out.size()).filter(x -> x % 3 == 0).mapToLong(out::get).max().getAsLong() + 1;
+        long height = IntStream.range(0, out.size()).filter(x -> x % 3 == 1).mapToLong(out::get).max().getAsLong() + 1;
 
         long[][] board = new long[(int) height][(int) width];
 
-        for (int i = 0; i < out.size(); i+=3) {
+        for (int i = 0; i < out.size(); i += 3) {
             int x = Math.toIntExact(out.get(i));
             int y = Math.toIntExact(out.get(i + 1));
             Long v = out.get(i + 2);
@@ -60,22 +62,22 @@ public class Day13 {
 
 //        Game game = new Game(cpu);
 
-        long width = IntStream.range(0,cpu.out.size()).filter(x -> x % 3 == 0).mapToLong(out::get).max().getAsLong() + 1;
-        long height = IntStream.range(0,cpu.out.size()).filter(x -> x % 3 == 1).mapToLong(out::get).max().getAsLong() + 1;
+        long width = IntStream.range(0, out.size()).filter(x -> x % 3 == 0).mapToLong(out::get).max().getAsLong() + 1;
+        long height = IntStream.range(0, out.size()).filter(x -> x % 3 == 1).mapToLong(out::get).max().getAsLong() + 1;
 
         long[][] board = new long[(int) height][(int) width];
 
         Integer score = null, px = null, bx = null;
         boolean halted;
         do {
-            Integer[] update = update(cpu.out, board);
+            Integer[] update = update(out, board);
             score = update[0] == null ? score : update[0];
             bx = update[1] == null ? bx : update[1];
             px = update[2] == null ? px : update[2];
-            cpu.in.offer((long) Integer.signum(bx - px));
+            in.offer((long) Integer.signum(bx - px));
             halted = cpu.run();
         } while (!halted);
-        Integer[] update = update(cpu.out, board);
+        Integer[] update = update(out, board);
         score = update[0] == null ? score : update[0];
         System.out.println(score);
     }
@@ -111,16 +113,16 @@ public class Day13 {
             Game game = new Game(cpu);
         }
 
-        private Game(IntCodeInterpreter cpu) {
+        private Game(IntCodeInterpreter cpu) throws IOException {
             cpu.run();
 
-            long width = IntStream.range(0,cpu.out.size()).filter(x -> x % 3 == 0).mapToLong(((LinkedList<Long>) cpu.out)::get).max().getAsLong() + 1;
-            long height = IntStream.range(0,cpu.out.size()).filter(x -> x % 3 == 1).mapToLong(((LinkedList<Long>) cpu.out)::get).max().getAsLong() + 1;
+            long width = IntStream.range(0, ((InterpreterQueue) cpu.out).size()).filter(x -> x % 3 == 0).mapToLong(((LinkedList<Long>) cpu.out)::get).max().getAsLong() + 1;
+            long height = IntStream.range(0, ((InterpreterQueue) cpu.out).size()).filter(x -> x % 3 == 1).mapToLong(((LinkedList<Long>) cpu.out)::get).max().getAsLong() + 1;
 
             long[][] board = new long[(int) height][(int) width];
 
             Box box = new Box(BoxLayout.Y_AXIS);
-            JLabel scoreLabel = new JLabel(String.valueOf(Day13.update(cpu.out, board)[0]));
+            JLabel scoreLabel = new JLabel(String.valueOf(Day13.update((InterpreterQueue) cpu.out, board)[0]));
             box.add(scoreLabel);
             GamePanel panel = new GamePanel(board);
             box.add(panel);
@@ -128,6 +130,8 @@ public class Day13 {
 
             addKeyListener(new KeyAdapter() {
                 private boolean halted = false;
+
+                @SneakyThrows
                 @Override
                 public void keyPressed(KeyEvent e) {
                     super.keyPressed(e);
@@ -143,12 +147,13 @@ public class Day13 {
                             case KeyEvent.VK_RIGHT:
                                 in = 1L;
                                 break;
-                            default: return;
+                            default:
+                                return;
                         }
 
-                        cpu.in.offer(in);
+                        ((InterpreterQueue) cpu.in).offer(in);
                         halted = cpu.run();
-                        Integer score = Day13.update(cpu.out, board)[0];
+                        Integer score = Day13.update((InterpreterQueue) cpu.out, board)[0];
                         if (score != null) {
                             scoreLabel.setText(score.toString());
                         }
@@ -198,16 +203,20 @@ public class Day13 {
 
                         switch (v) {
                             case 1:
-                                c = Color.BLACK; break;
+                                c = Color.BLACK;
+                                break;
                             case 2:
-                                c = Color.GREEN; break;
+                                c = Color.GREEN;
+                                break;
                             case 3:
-                                c = Color.YELLOW; break;
+                                c = Color.YELLOW;
+                                break;
                             case 4:
-                                c = Color.RED; break;
+                                c = Color.RED;
+                                break;
                         }
                         g.setColor(c);
-                        g.fillRect(x* scale, y* scale, x* scale + scale, y* scale + scale);
+                        g.fillRect(x * scale, y * scale, x * scale + scale, y * scale + scale);
                     }
                 }
 

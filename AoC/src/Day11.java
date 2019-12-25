@@ -19,7 +19,7 @@ public class Day11 {
         partTwo(initialState);
     }
 
-    private static void partOne(List<Long> initialState) {
+    private static void partOne(List<Long> initialState) throws IOException {
         Map<Vector, Long> painted = runBot(initialState, 0L);
 
         System.out.println(painted.size());
@@ -44,14 +44,14 @@ public class Day11 {
         for (int y = minY; y <= maxY; y++) {
             for (int x = minX; x <= maxX; x++) {
                 long pixel = painted.getOrDefault(new Vector(x, y), 0L);
-                bufferedImage.setRGB(x - minX,y - minY, (pixel == 1) ? Integer.MAX_VALUE : 0);
+                bufferedImage.setRGB(x - minX, y - minY, (pixel == 1) ? Integer.MAX_VALUE : 0);
             }
         }
 
-        ImageIO.write(bufferedImage,"png", new File(imagePath));
+        ImageIO.write(bufferedImage, "png", new File(imagePath));
     }
 
-    private static Map<Vector, Long> runBot(List<Long> initialState, long startPanel) {
+    private static Map<Vector, Long> runBot(List<Long> initialState, long startPanel) throws IOException {
         InterpreterQueue in = new InterpreterQueue();
         InterpreterQueue out = new InterpreterQueue();
         IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, in, out);

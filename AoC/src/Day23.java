@@ -9,17 +9,17 @@ public class Day23 {
         for (int i = 0; i < cpus.length; i++) {
             IntCodeInterpreter cpu = getCpu();
             cpus[i] = cpu;
-            cpu.in.offer((long) i);
+            ((InterpreterQueue) cpu.in).offer((long) i);
             cpu.run();
         }
-        
+
         Long X = null, Y = null;
-        Long  prevY = null;
+        Long prevY = null;
         while (true) {
-            boolean idle = Arrays.stream(cpus).filter(cpu -> cpu.in.isEmpty() && cpu.out.isEmpty()).count() == cpus.length;
+            boolean idle = Arrays.stream(cpus).filter(cpu -> cpu.in.isEmpty() && ((InterpreterQueue) cpu.out).isEmpty()).count() == cpus.length;
             if (idle && X != null && Y != null) {
-                cpus[0].in.offer(X);
-                cpus[0].in.offer(Y);
+                ((InterpreterQueue) cpus[0].in).offer(X);
+                ((InterpreterQueue) cpus[0].in).offer(Y);
 
                 if (Y.equals(prevY)) {
                     break;
@@ -28,22 +28,25 @@ public class Day23 {
                 prevY = Y;
             }
             for (IntCodeInterpreter cpu : cpus) {
-                while (!cpu.out.isEmpty()) {
-                    Long address = cpu.out.poll();
-                    Long x = cpu.out.poll();
-                    Long y = cpu.out.poll();
+                while (true) {
+                    InterpreterQueue out = (InterpreterQueue) cpu.out;
+                    if (out.isEmpty()) break;
+                    Long address = out.poll();
+                    Long x = out.poll();
+                    Long y = out.poll();
                     if (address.equals(255L)) {
                         X = x;
                         Y = y;
                         continue;
                     }
                     IntCodeInterpreter recipient = cpus[Math.toIntExact(address)];
-                    recipient.in.offer(x);
-                    recipient.in.offer(y);
+                    InterpreterQueue in = (InterpreterQueue) recipient.in;
+                    in.offer(x);
+                    in.offer(y);
                 }
             }
             for (IntCodeInterpreter cpu : cpus) {
-                if (cpu.in.isEmpty()) cpu.in.offer(-1L);
+                if (cpu.in.isEmpty()) ((InterpreterQueue) cpu.in).offer(-1L);
                 cpu.run();
             }
         }

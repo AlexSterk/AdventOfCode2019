@@ -12,10 +12,10 @@ public class Day21 {
         runProgram(cpu, collect);
     }
 
-    private static void runProgram(IntCodeInterpreter cpu, String collect) {
-        cpu.in.addAll(collect.chars().mapToLong(i -> i).boxed().collect(Collectors.toList()));
+    private static void runProgram(IntCodeInterpreter cpu, String collect) throws IOException {
+        ((InterpreterQueue) cpu.in).addAll(collect.chars().mapToLong(i -> i).boxed().collect(Collectors.toList()));
         cpu.run();
-        cpu.out.stream().map(aLong -> aLong > 127 ?  aLong.toString() : Character.toString((char) aLong.intValue())).forEach(System.out::print);
+        ((InterpreterQueue) cpu.out).stream().map(aLong -> aLong > 127 ? aLong.toString() : Character.toString((char) aLong.intValue())).forEach(System.out::print);
     }
 
     private static String partOneProgram() {
@@ -37,7 +37,7 @@ public class Day21 {
                 "AND B T",
                 "AND C T",
                 "NOT T J",
-                "AND D J" ,  // until now, this is the same as part 1
+                "AND D J",  // until now, this is the same as part 1
                 "NOT E T",
                 "NOT T T",
                 "OR  H T",

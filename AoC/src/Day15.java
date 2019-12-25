@@ -21,7 +21,7 @@ public class Day15 {
             this.cpu = cpu;
         }
 
-        void exploreNeighbours(Set<Node> visited, Direction from) {
+        void exploreNeighbours(Set<Node> visited, Direction from) throws IOException {
             if (visited.contains(this)) {
                 assert from == null || move(from) > 0;
                 return;
@@ -41,10 +41,10 @@ public class Day15 {
             assert from == null || move(from) > 0;
         }
 
-        private int move(Direction dir) {
-            cpu.in.offer((long) dir.command);
+        private int move(Direction dir) throws IOException {
+            ((InterpreterQueue) cpu.in).offer((long) dir.command);
             cpu.run();
-            long out = cpu.out.poll();
+            long out = ((InterpreterQueue) cpu.out).poll();
 
             ArrayList<Object> e = new ArrayList<>();
             e.add(this);
@@ -108,7 +108,6 @@ public class Day15 {
             toVisit.remove(lowestDistance);
 
             int distance = distances.getOrDefault(lowestDistance, Integer.MAX_VALUE);
-
 
 
             lowestDistance.neighbours.forEach(n -> {
