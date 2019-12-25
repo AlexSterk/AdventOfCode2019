@@ -8,8 +8,8 @@ import java.util.stream.Stream;
 public class IntCodeInterpreter {
     private final List<Long> initialState;
     private List<Long> program;
-    public final Queue<Long> in;
-    public final Queue<Long> out;
+    public final InterpreterQueue in;
+    public final InterpreterQueue out;
     public final List<IntCodeAST.Instruction> executedInstructions = new ArrayList<>();
     private int pointer = 0;
     private boolean halted = false;
@@ -21,10 +21,10 @@ public class IntCodeInterpreter {
     }
 
     public IntCodeInterpreter(List<Long> program) {
-        this(program, new LinkedList<>(), new LinkedList<>());
+        this(program, new InterpreterQueue(), new InterpreterQueue());
     }
 
-    public IntCodeInterpreter(List<Long> program, Queue<Long> in, Queue<Long> out) {
+    public IntCodeInterpreter(List<Long> program, InterpreterQueue in, InterpreterQueue out) {
         this.initialState = program;
         this.program = new ArrayList<>(program);
         this.in = in;
@@ -91,7 +91,7 @@ public class IntCodeInterpreter {
                     if (in.isEmpty()) return false;
 
                     a1 = new IntCodeAST.Argument.Abs(getMemory(++pointer));
-                    a2 = new IntCodeAST.Argument.Abs(in.poll());
+                    a2 = new IntCodeAST.Argument.Abs(in.getNext());
 
                     if (isRelativeMode(fullOpCode, 2)) a1 = new IntCodeAST.Argument.Rel(a1.value + relBase, a1.value);
                     else a1 = new IntCodeAST.Argument.Pos(a1.value, a1.value);
@@ -105,7 +105,7 @@ public class IntCodeInterpreter {
                 case Output:
                     a1 = new IntCodeAST.Argument.Abs(getMemory(++pointer));
                     if (isNotImmediateMode(fullOpCode, 2)) a1 = getArgument(fullOpCode, (IntCodeAST.Argument.Abs) a1, 2);
-                    out.offer(a1.value);
+                    out.write(a1.value);
                     pointer++;
 
                     executedInstructions.add(new IntCodeAST.Instruction.Out(relBase, pointer, a1));
@@ -209,7 +209,7 @@ public class IntCodeInterpreter {
             Scanner scanner = new Scanner(System.in);
             do {
                 halted = cpu.run();
-            } while (!halted && cpu.in.offer(scanner.nextLong()));
+            } while (!halted && cpu.in.write(scanner.nextLong()));
             System.out.println("Output for: " + arg);
             System.out.println(cpu.out);
         }

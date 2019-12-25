@@ -52,8 +52,8 @@ public class Day11 {
     }
 
     private static Map<Vector, Long> runBot(List<Long> initialState, long startPanel) {
-        Queue<Long> in = new LinkedList<>();
-        Queue<Long> out = new LinkedList<>();
+        InterpreterQueue in = new InterpreterQueue();
+        InterpreterQueue out = new InterpreterQueue();
         IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, in, out);
 
         Map<Vector, Long> painted = new HashMap<>();
@@ -63,16 +63,16 @@ public class Day11 {
 
         boolean halted = false;
 
-        in.offer(startPanel);
+        in.write(startPanel);
 
         while (!halted) {
             halted = cpu.run();
-            long color = out.poll();
-            long direction = out.poll();
+            long color = out.getNext();
+            long direction = out.getNext();
             painted.put(location, color);
             currentlyFacing = direction == 0 ? turnLeft(currentlyFacing) : turnRight(currentlyFacing);
             location = updatePosition(location, currentlyFacing);
-            in.offer(painted.getOrDefault(location, 0L));
+            in.write(painted.getOrDefault(location, 0L));
         }
         return painted;
     }

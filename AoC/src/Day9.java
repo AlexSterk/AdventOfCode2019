@@ -17,8 +17,8 @@ public class Day9 {
         String inputString = Files.readString(Paths.get("AoC/resources/day9.txt"));
         List<Long> initialState = Stream.of(inputString.split("[,\n]")).map(Long::parseLong).collect(Collectors.toList());
 
-        LinkedList<Long> in = new LinkedList<>();
-        LinkedList<Long> out = new LinkedList<>();
+        InterpreterQueue in = new InterpreterQueue();
+        InterpreterQueue out = new InterpreterQueue();
         IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, in, out);
         in.offer((long) 1);
         cpu.run();
@@ -29,8 +29,8 @@ public class Day9 {
         String inputString = Files.readString(Paths.get("AoC/resources/day9.txt"));
         List<Long> initialState = Stream.of(inputString.split("[,\n]")).map(Long::parseLong).collect(Collectors.toList());
 
-        LinkedList<Long> in = new LinkedList<>();
-        LinkedList<Long> out = new LinkedList<>();
+        InterpreterQueue in = new InterpreterQueue();
+        InterpreterQueue out = new InterpreterQueue();
         IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, in, out);
         in.offer((long) 2);
         cpu.run();
@@ -41,8 +41,8 @@ public class Day9 {
         List<List<Long>> programs = Files.lines(Paths.get("AoC/resources/day9-test.txt")).map(l -> l.split(",")).map(List::of).map(l -> l.stream().map(Long::parseLong).collect(Collectors.toList())).collect(Collectors.toList());
 
         for (List<Long> program : programs) {
-            LinkedList<Long> in = new LinkedList<>();
-            LinkedList<Long> out = new LinkedList<>();
+            InterpreterQueue in = new InterpreterQueue();
+            InterpreterQueue out = new InterpreterQueue();
             IntCodeInterpreter cpu = new IntCodeInterpreter(program, in, out);
             cpu.run();
             System.out.println(out);

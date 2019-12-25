@@ -23,8 +23,8 @@ public class Day13 {
         String inputString = Files.readString(Paths.get("AoC/resources/day13.txt"));
         List<Long> initialState = Stream.of(inputString.split("[,\n]")).map(Long::parseLong).collect(Collectors.toList());
 
-        LinkedList<Long> in = new LinkedList<>();
-        LinkedList<Long> out = new LinkedList<>();
+        InterpreterQueue in = new InterpreterQueue();
+        InterpreterQueue out = new InterpreterQueue();
         IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, in, out);
         cpu.run();
 
@@ -53,8 +53,8 @@ public class Day13 {
 
         initialState.set(0, 2L);
 
-        LinkedList<Long> in = new LinkedList<>();
-        LinkedList<Long> out = new LinkedList<>();
+        InterpreterQueue in = new InterpreterQueue();
+        InterpreterQueue out = new InterpreterQueue();
         IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, in, out);
         cpu.run();
 
@@ -107,7 +107,7 @@ public class Day13 {
             String inputString = Files.readString(Paths.get("AoC/resources/day13.txt"));
             List<Long> initialState = Stream.of(inputString.split("[,\n]")).map(Long::parseLong).collect(Collectors.toList());
             initialState.set(0, 2L);
-            IntCodeInterpreter cpu = new IntCodeInterpreter(initialState, new LinkedList<>(), new LinkedList<>());
+            IntCodeInterpreter cpu = new IntCodeInterpreter(initialState);
             Game game = new Game(cpu);
         }
 
