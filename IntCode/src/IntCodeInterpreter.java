@@ -35,6 +35,10 @@ public class IntCodeInterpreter {
         this.out = out;
     }
 
+    public IntCodeInterpreter(String program, InterpreterInput in, InterpreterOutput out) {
+        this(toProgram(program), in, out);
+    }
+
     public void reset() {
         program = new ArrayList<>(initialState);
         in.clear();
