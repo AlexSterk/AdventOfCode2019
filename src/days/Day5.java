@@ -29,7 +29,10 @@ public class Day5 extends Day {
 
     @Override
     public void part2() {
-
+        List<String> strings = new ArrayList<>(this.strings);
+        strings.removeIf(Predicate.not(Day5::hasDoubleBigram));
+        strings.removeIf(Predicate.not(Day5::hasInterruptedDouble));
+        System.out.println(strings.size());
     }
 
     static final List<Character> vowels = List.of('a', 'e', 'i', 'o', 'u');
@@ -50,6 +53,26 @@ public class Day5 extends Day {
     static boolean hasBigrams(String s) {
         for (String bigram : bigrams) {
             if (s.contains(bigram)) return true;
+        }
+        return false;
+    }
+    
+    static boolean hasDoubleBigram(String s) {
+        List<String> bigrams = new ArrayList<>();
+        for (int i = 0; i < s.length()-1; i++) {
+            String bigram = s.substring(i, i+2);
+            if (bigrams.contains(bigram)) {
+                int index = bigrams.indexOf(bigram);
+                if (i - index > 1) return true;
+            }
+            bigrams.add(bigram);
+        }
+        return false;
+    }
+    
+    static boolean hasInterruptedDouble(String s) {
+        for (int i = 0; i < s.length() - 2; i++) {
+            if (s.charAt(i) == s.charAt(i+2)) return true;
         }
         return false;
     }
