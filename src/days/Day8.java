@@ -128,13 +128,6 @@ class GameConsole {
             };
         }
 
-        @Override
-        public String toString() {
-            return "Instruction[" +
-                    "operation=" + operation + ", " +
-                    "argument=" + argument + ']';
-        }
-
         enum Operation {
             ACC,
             JMP,
