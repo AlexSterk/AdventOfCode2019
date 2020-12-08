@@ -117,14 +117,7 @@ class GameConsole {
         }
     }
 
-    static final class Instruction {
-        final Operation operation;
-        final int argument;
-
-        Instruction(Operation operation, int argument) {
-            this.operation = operation;
-            this.argument = argument;
-        }
+    static final record Instruction(Operation operation, int argument) {
 
         static Instruction stringToInstruction(String s) {
             String[] split = s.split(" ");
