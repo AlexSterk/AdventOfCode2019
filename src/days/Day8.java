@@ -4,20 +4,21 @@ import setup.Day;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static days.GameConsole.*;
-import static days.Operation.*;
+import static days.GameConsole.Instruction.Operation.*;
+import static days.GameConsole.Instruction.Operation.JMP;
 
 public class Day8 extends Day {
 
-    private List<Instruction> instructions;
     private GameConsole gc;
 
     @Override
     public void processInput() {
-        instructions = Arrays.stream(input.split("\r?\n")).map(Instruction::stringToInstruction).collect(Collectors.toList());
+        List<GameConsole.Instruction> instructions = Arrays.stream(input.split("\r?\n")).map(GameConsole.Instruction::stringToInstruction).collect(Collectors.toList());
         gc = new GameConsole();
         gc.loadProgram(instructions);
     }
@@ -27,6 +28,7 @@ public class Day8 extends Day {
         try {
             System.out.println(gc.loop());
         } catch (ProgramEndReached programEndReached) {
+            programEndReached.printStackTrace();
             System.exit(1);
         }
     }
@@ -47,43 +49,45 @@ class GameConsole {
     private int accumulator;
     private int pc;
     private List<Instruction> instructions;
-    
+    private IdentityHashMap<Instruction, Integer> executed;
+
     GameConsole() {
         reset();
     }
-    
+
     void reset() {
         accumulator = 0;
         pc = 0;
-        if (instructions != null) instructions.forEach(Instruction::reset);
+        executed = new IdentityHashMap<>();
     }
-    
+
     void loadProgram(List<Instruction> instructions) {
         this.instructions = instructions;
     }
-    
-    void step() {
+
+    void step() throws ProgramEndReached {
         Instruction instruction = instructions.get(pc);
-        
+
         switch (instruction.operation) {
             case ACC -> accumulator += instruction.argument;
             case JMP -> pc += instruction.argument;
-            case NOP -> {}
+            case NOP -> {
+            }
         }
-        
+
         if (instruction.operation != JMP) pc++;
-        instruction.execute();
+        executed.merge(instruction, 1, Integer::sum);
+        if (pc >= instructions.size()) throw new ProgramEndReached(accumulator);
     }
-    
+
     int loop() throws ProgramEndReached {
         do {
             step();
-            if (pc >= instructions.size()) throw new ProgramEndReached(accumulator);
-        } while (instructions.get(pc).getExecuted() < 1);
+        } while (executed.getOrDefault(instructions.get(pc), 0) < 1);
 
         return accumulator;
     }
-    
+
     int fixProgram() {
         for (int i = 0; i < instructions.size(); i++) {
             Instruction current = instructions.get(i);
@@ -94,7 +98,6 @@ class GameConsole {
 
             GameConsole gc = new GameConsole();
             gc.instructions = newInsts;
-            gc.reset();
 
             try {
                 gc.loop();
@@ -102,7 +105,7 @@ class GameConsole {
                 return programEndReached.accumulator;
             }
         }
-        
+
         return -1;
     }
 
@@ -113,50 +116,37 @@ class GameConsole {
             this.accumulator = accumulator;
         }
     }
-}
 
-final class Instruction {
-    final Operation operation;
-    final int argument;
-    
-    private int executed = 0;
+    static final class Instruction {
+        final Operation operation;
+        final int argument;
 
-    Instruction(Operation operation, int argument) {
-        this.operation = operation;
-        this.argument = argument;
-    }
+        Instruction(Operation operation, int argument) {
+            this.operation = operation;
+            this.argument = argument;
+        }
 
-    static Instruction stringToInstruction(String s) {
-        String[] split = s.split(" ");
-        return switch (split[0]) {
-            case "acc" -> new Instruction(ACC, Integer.parseInt(split[1]));
-            case "jmp" -> new Instruction(JMP, Integer.parseInt(split[1]));
-            default -> new Instruction(NOP, Integer.parseInt(split[1]));
-        };
-    }
+        static Instruction stringToInstruction(String s) {
+            String[] split = s.split(" ");
+            return switch (split[0]) {
+                case "acc" -> new Instruction(ACC, Integer.parseInt(split[1]));
+                case "jmp" -> new Instruction(JMP, Integer.parseInt(split[1]));
+                default -> new Instruction(NOP, Integer.parseInt(split[1]));
+            };
+        }
 
-    @Override
-    public String toString() {
-        return "Instruction[" +
-                "operation=" + operation + ", " +
-                "argument=" + argument + ']';
-    }
-    
-    void execute() {
-        executed++;
-    }
-    
-    int getExecuted() {
-        return executed;
-    }
-    
-    void reset() {
-        executed = 0;
+        @Override
+        public String toString() {
+            return "Instruction[" +
+                    "operation=" + operation + ", " +
+                    "argument=" + argument + ']';
+        }
+
+        enum Operation {
+            ACC,
+            JMP,
+            NOP;
+        }
     }
 }
 
-enum Operation {
-    ACC,
-    JMP,
-    NOP;
-}
