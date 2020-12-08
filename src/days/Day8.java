@@ -2,11 +2,12 @@ package days;
 
 import setup.Day;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static days.GameConsole.*;
 import static days.Operation.*;
 
 public class Day8 extends Day {
@@ -23,12 +24,17 @@ public class Day8 extends Day {
 
     @Override
     public void part1() {
-        gc.runUntilSecondExecute();
+        try {
+            System.out.println(gc.loop());
+        } catch (ProgramEndReached programEndReached) {
+            System.exit(1);
+        }
     }
 
     @Override
     public void part2() {
-
+        gc.reset();
+        System.out.println(gc.fixProgram());
     }
 
     @Override
@@ -49,6 +55,7 @@ class GameConsole {
     void reset() {
         accumulator = 0;
         pc = 0;
+        if (instructions != null) instructions.forEach(Instruction::reset);
     }
     
     void loadProgram(List<Instruction> instructions) {
@@ -68,12 +75,43 @@ class GameConsole {
         instruction.execute();
     }
     
-    void runUntilSecondExecute() {
+    int loop() throws ProgramEndReached {
         do {
             step();
+            if (pc >= instructions.size()) throw new ProgramEndReached(accumulator);
         } while (instructions.get(pc).getExecuted() < 1);
 
-        System.out.println(accumulator);
+        return accumulator;
+    }
+    
+    int fixProgram() {
+        for (int i = 0; i < instructions.size(); i++) {
+            Instruction current = instructions.get(i);
+            if (current.operation == ACC) continue;
+            Instruction fixed = new Instruction(current.operation == JMP ? NOP : JMP, current.argument);
+            List<Instruction> newInsts = new ArrayList<>(instructions);
+            newInsts.set(i, fixed);
+
+            GameConsole gc = new GameConsole();
+            gc.instructions = newInsts;
+            gc.reset();
+
+            try {
+                gc.loop();
+            } catch (ProgramEndReached programEndReached) {
+                return programEndReached.accumulator;
+            }
+        }
+        
+        return -1;
+    }
+
+    static class ProgramEndReached extends Throwable {
+        private final int accumulator;
+
+        public ProgramEndReached(int accumulator) {
+            this.accumulator = accumulator;
+        }
     }
 }
 
@@ -110,6 +148,10 @@ final class Instruction {
     
     int getExecuted() {
         return executed;
+    }
+    
+    void reset() {
+        executed = 0;
     }
 }
 
