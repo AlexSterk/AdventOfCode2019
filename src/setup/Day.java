@@ -5,6 +5,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
 
 public abstract class Day {
     /**
@@ -67,7 +69,12 @@ public abstract class Day {
         Constructor<?> constructor = C.getConstructor();
         Day day = (Day) constructor.newInstance();
 
+        Instant now = Instant.now();
         day.part1();
+        Duration partOneTime = Duration.between(now, Instant.now());
+        now = Instant.now();
         day.part2();
+        Duration partTwoTime = Duration.between(now, Instant.now());
+        System.out.format("%02d.%04d, %02d.%04d", partOneTime.getSeconds(), partOneTime.toMillis(), partTwoTime.getSeconds(), partTwoTime.toMillis());
     }
 }
