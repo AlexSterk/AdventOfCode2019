@@ -37,7 +37,8 @@ public class Day11 extends Day {
 
     @Override
     public void part1() {
-
+        var seatsMap = new HashMap<>(this.seatsMap);
+        
         while (true) {
             Map<Pair, Seat> previousRound = new HashMap<>(seatsMap);
             previousRound.entrySet().parallelStream().forEach(e -> seatsMap.put(e.getKey(), getNewSeatPart1(e.getKey(), e.getValue(), previousRound)));
@@ -52,7 +53,7 @@ public class Day11 extends Day {
 
     @Override
     public void part2() {
-        processInput();
+        var seatsMap = new HashMap<>(this.seatsMap);
         while (true) {
             Map<Pair, Seat> previousRound = new HashMap<>(seatsMap);
             previousRound.entrySet().parallelStream().forEach(e -> seatsMap.put(e.getKey(), getNewSeatPart2(e.getKey(), e.getValue(), previousRound)));
