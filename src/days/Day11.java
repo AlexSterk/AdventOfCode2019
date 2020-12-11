@@ -40,7 +40,7 @@ public class Day11 extends Day {
 
         while (true) {
             Map<Pair, Seat> previousRound = new HashMap<>(seatsMap);
-            previousRound.entrySet().stream().forEach(e -> seatsMap.put(e.getKey(), getNewSeatPart1(e.getKey(), e.getValue(), previousRound)));
+            previousRound.entrySet().parallelStream().forEach(e -> seatsMap.put(e.getKey(), getNewSeatPart1(e.getKey(), e.getValue(), previousRound)));
             
             if (seatsMap.equals(previousRound)) {
                 long occupied = seatsMap.values().stream().filter(s -> s == OCCUPIED).count();
@@ -55,7 +55,7 @@ public class Day11 extends Day {
         processInput();
         while (true) {
             Map<Pair, Seat> previousRound = new HashMap<>(seatsMap);
-            previousRound.entrySet().stream().forEach(e -> seatsMap.put(e.getKey(), getNewSeatPart2(e.getKey(), e.getValue(), previousRound)));
+            previousRound.entrySet().parallelStream().forEach(e -> seatsMap.put(e.getKey(), getNewSeatPart2(e.getKey(), e.getValue(), previousRound)));
 
             if (seatsMap.equals(previousRound)) {
                 long occupied = seatsMap.values().stream().filter(s -> s == OCCUPIED).count();
