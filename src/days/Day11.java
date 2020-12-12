@@ -1,6 +1,7 @@
 package days;
 
 import misc.KVPair;
+import misc.Pair;
 import setup.Day;
 
 import java.util.HashMap;
@@ -8,7 +9,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static days.Seat.*;
-import static misc.KVPair.*;
 
 public class Day11 extends Day {
     

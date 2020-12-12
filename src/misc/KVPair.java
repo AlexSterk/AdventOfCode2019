@@ -39,14 +39,5 @@ public class KVPair<K, V> {
                 "key=" + key + ", " +
                 "value=" + value + ']';
     }
-    
-    public static class Pair extends KVPair<Integer, Integer> {
-        public Pair(Integer key, Integer value) {
-            super(key, value);
-        }
-        
-        public Pair add(KVPair<Integer, Integer> other) {
-            return new Pair(key() + other.key(), value() + other.value());
-        }
-    }
+
 }
