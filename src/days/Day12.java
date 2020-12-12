@@ -14,7 +14,8 @@ public class Day12 extends Day {
 
     private List<String> instructions;
     private Pair pos;
-    private Direction facing;
+    private Pair facing;
+
 
     @Override
     public void processInput() {
@@ -26,12 +27,22 @@ public class Day12 extends Day {
         pos = new Pair(0,0);
         facing = EAST;
         
-        instructions.forEach(this::followInstruction);
+        instructions.forEach(ins -> followInstructionBoat(ins, false));
         Pair absolute = pos.absolute();
         System.out.println(absolute.key() + absolute.value());
     }
     
-    private void followInstruction(String ins) {
+    @Override
+    public void part2() {
+        pos = new Pair(0,0);
+        facing = new Pair(10, -1);
+
+        instructions.forEach(ins -> followInstructionBoat(ins, true));
+        Pair absolute = pos.absolute();
+        System.out.println(absolute.key() + absolute.value());
+    }
+
+    private void followInstructionBoat(String ins, boolean moveWaypoint) {
         char c = ins.charAt(0);
         int value = Integer.parseInt(ins.substring(1));
 
@@ -45,30 +56,36 @@ public class Day12 extends Day {
                 int times = value / 90;
                 if (c == 'L') {
                     for (int i = 0; i < times; i++) {
-                        facing = facing.getLeft();
+                        facing = facing.rotateCounterClockWise();
                     }
                 } else {
                     for (int i = 0; i < times; i++) {
-                        facing = facing.getRight();
+                        facing = facing.rotateClockWise();
                     }
                 }
             }
             case 'N', 'S', 'E', 'W' -> {
                 Direction to = Direction.getById(c);
-                for (int i = 0; i < value; i++) {
-                    pos = pos.add(to);
+                if (moveWaypoint) {
+                    for (int i = 0; i < value; i++) {
+                        facing = facing.add(to);
+                    }
+                } else {
+                    for (int i = 0; i < value; i++) {
+                        pos = pos.add(to);
+                    }
                 }
             }
         }
     }
 
     @Override
-    public void part2() {
-
+    public int getDay() {
+        return 12;
     }
 
     @Override
-    public int getDay() {
-        return 12;
+    public boolean isTest() {
+        return false;
     }
 }

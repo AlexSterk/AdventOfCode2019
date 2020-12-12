@@ -12,4 +12,12 @@ public class Pair extends KVPair<Integer, Integer> {
     public Pair absolute() {
         return new Pair(Math.abs(key()), Math.abs(value()));
     }
+    
+    public Pair rotateClockWise() {
+        return new Pair(-value(), key());
+    }
+
+    public Pair rotateCounterClockWise() {
+        return new Pair(value(), -key());
+    }
 }
