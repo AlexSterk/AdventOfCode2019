@@ -1,5 +1,6 @@
 package days;
 
+import misc.Pair;
 import setup.Day;
 
 import java.util.*;
@@ -19,23 +20,23 @@ public class Day15 extends Day {
     }
 
     private void playGame(int goFor) {
-        Map<Integer, List<Integer>> spoken = new HashMap<>();
+        Map<Integer, Pair> spoken = new HashMap<>();
 
         for (int i = 0; i < starting.size(); i++) {
-            spoken.put(starting.get(i), new ArrayList<>(List.of(i+1)));
+            spoken.put(starting.get(i), new Pair(null, i+1));
         }
 
         int last = starting.get(starting.size() - 1);
 
         for (int i = starting.size(); i < goFor; i++) {
             int num;
-            if (spoken.get(last).size() == 1) {
+            Pair spoke = spoken.get(last);
+            if (spoke.key() == null) {
                 num = 0;
             } else {
-                List<Integer> spoke = spoken.get(last);
-                num = spoke.get(spoke.size() - 1) - spoke.get(spoke.size() - 2);
+                num = spoke.value() - spoke.key();
             }
-            spoken.computeIfAbsent(num, x -> new ArrayList<>()).add(i+1);
+            spoken.put(num, new Pair(spoken.getOrDefault(num, new Pair(null, (Integer) null)).value(), i + 1));
             last = num;
         }
 
