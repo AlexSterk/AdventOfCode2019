@@ -39,12 +39,50 @@ public class Day16 extends Day {
     @Override
     public void part2() {
         
+        tickets.removeIf(t -> !isValidTicket(t));
+        
+        Map<String, Set<Integer>> fieldIndexMap = new HashMap<>();
+
+        o: for (String s : fields.keySet()) {
+            for (int i = 0; i < myTicket.size(); i++) {
+                int finalI = i;
+                if (tickets.stream().map(t -> t.get(finalI)).allMatch(n -> {
+                    var ranges = fields.get(s);
+                    for (Pair range : ranges) {
+                        if (inRange(n, range)) return true;
+                    }
+                    return false;
+                })) {
+                    fieldIndexMap.computeIfAbsent(s, x -> new HashSet<>()).add(i);
+                }
+            }
+        }
+        
+        
+        // NOTE: Turning this list into a HashSet ruins everything because for some reason Set(0) cannot be removed
+        // from noDefiniteIndex (calling remove does nothing)
+        List<Set<Integer>> noDefiniteIndex = new ArrayList<>(fieldIndexMap.values());
+        while (!noDefiniteIndex.isEmpty()) {
+            Optional<Set<Integer>> definiteIndex = noDefiniteIndex.stream().filter(s -> s.size() == 1).findAny();
+            if (definiteIndex.isPresent()) {
+                Set<Integer> index = definiteIndex.get();
+                noDefiniteIndex.remove(index);
+                noDefiniteIndex.forEach(s -> s.removeAll(index));
+            } else {
+                break;
+            }
+        }
+
+        long product = fieldIndexMap.entrySet().stream().filter(e -> e.getKey().startsWith("departure")).map(Map.Entry::getValue).map(s -> s.iterator().next()).mapToLong(myTicket::get).reduce(1, (a, b) -> a * b);
+
+        System.out.println(product);
     }
 
     @Override
     public int getDay() {
         return 16;
     }
+    
     
     private boolean isValidTicket(List<Integer> ticket) {
         Set<Pair> allRanges = new HashSet<>();
