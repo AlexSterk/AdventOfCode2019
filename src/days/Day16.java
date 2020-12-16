@@ -57,16 +57,19 @@ public class Day16 extends Day {
                 }
             }
         }
-        
+
+        System.out.println("--------");
         
         // NOTE: Turning this list into a HashSet ruins everything because for some reason Set(0) cannot be removed
         // from noDefiniteIndex (calling remove does nothing)
-        List<Set<Integer>> noDefiniteIndex = new ArrayList<>(fieldIndexMap.values());
+//        List<Set<Integer>> noDefiniteIndex = new ArrayList<>(fieldIndexMap.values());
+        Set<Set<Integer>> noDefiniteIndex = new HashSet<>(fieldIndexMap.values());
         while (!noDefiniteIndex.isEmpty()) {
             Optional<Set<Integer>> definiteIndex = noDefiniteIndex.stream().filter(s -> s.size() == 1).findAny();
             if (definiteIndex.isPresent()) {
                 Set<Integer> index = definiteIndex.get();
-                noDefiniteIndex.remove(index);
+                System.out.println(index);
+                assert noDefiniteIndex.remove(index);
                 noDefiniteIndex.forEach(s -> s.removeAll(index));
             } else {
                 break;
