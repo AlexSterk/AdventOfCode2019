@@ -3,6 +3,7 @@ package days;
 import setup.Day;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class Day17 extends Day {
@@ -48,7 +49,7 @@ public class Day17 extends Day {
 
     @Override
     public void part2() {
-        grid = new HashMap<>();
+        grid = new ConcurrentHashMap<>();
 
         int s = 12;
         for (int x = 0; x < s; x++) {
@@ -73,8 +74,8 @@ public class Day17 extends Day {
 
         for (int i = 0; i < 6; i++) {
             Collection<Cube> values = new HashSet<>(grid.values());
-            values.forEach(c -> c.doCycle(grid));
-            values.forEach(Cube::executeCycle);
+            values.parallelStream().forEach(c -> c.doCycle(grid));
+            values.parallelStream().forEach(Cube::executeCycle);
 
         }
         System.out.println(grid.values().stream().filter(Cube::isActive).count());
