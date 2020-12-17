@@ -3,6 +3,9 @@ package days;
 import misc.Pair;
 import setup.Day;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
