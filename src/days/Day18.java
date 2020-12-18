@@ -1,6 +1,5 @@
 package days;
 
-import misc.KVPair;
 import setup.Day;
 
 import java.util.Arrays;
@@ -55,12 +54,12 @@ public class Day18 extends Day {
         return eval;
     }
     
-    final Pattern EXP2 = Pattern.compile("(\\d+) *([+*]) *(\\d+)");
-    final Pattern EXP3 = Pattern.compile("(\\d+) *([+]) *(\\d+)");
+    final Pattern EXP = Pattern.compile("(\\d+) *([+*]) *(\\d+)");
+    final Pattern PRECEDENCE_EXP = Pattern.compile("(\\d+) *([+]) *(\\d+)");
     
     Long evalInner(MatchResult r, boolean precedence) {
         String s = r.group();
-        Matcher m = ((precedence = precedence && s.contains("+")) ? EXP3 : EXP2).matcher(s);
+        Matcher m = ((precedence = precedence && s.contains("+")) ? PRECEDENCE_EXP : EXP).matcher(s);
         Long eval = 0L;
 
         while (m.find()) {
@@ -76,7 +75,7 @@ public class Day18 extends Day {
 
             s = s.replaceFirst(Pattern.quote(m.group()), eval.toString());
             if (!s.contains("+")) precedence = false;
-            m = (precedence ? EXP3 : EXP2).matcher(s);
+            m = (precedence ? PRECEDENCE_EXP : EXP).matcher(s);
         }
         
         return eval;
