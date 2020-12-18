@@ -36,8 +36,7 @@ public class Day18 extends Day {
         return 18;
     }
     
-    final Pattern EXP = Pattern.compile("(\\d+)( *([+*]) *(\\d+) *)*");
-    final Pattern PAREN = Pattern.compile("\\(%s\\)".formatted(EXP));
+    final Pattern PAREN = Pattern.compile("\\([^()]*\\)");
     
     Long evalLine(String s, boolean precedence) {
         Matcher m;
