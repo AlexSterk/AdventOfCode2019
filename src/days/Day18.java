@@ -21,12 +21,14 @@ public class Day18 extends Day {
 
     @Override
     public void part1() {
-        System.out.println(expressions.stream().mapToLong(this::evalLine).sum());
+        System.out.println(expressions.stream().mapToLong(s -> evalLine(s, false)).sum());
     }
 
     @Override
     public void part2() {
-
+        System.out.println(expressions.stream().mapToLong(s -> evalLine(s, true))
+//                .peek(System.out::println)
+                .sum());
     }
 
     @Override
@@ -37,7 +39,7 @@ public class Day18 extends Day {
     final Pattern EXP = Pattern.compile("(\\d+)( *([+*]) *(\\d+) *)*");
     final Pattern PAREN = Pattern.compile("\\(%s\\)".formatted(EXP));
     
-    Long evalLine(String s) {
+    Long evalLine(String s, boolean precedence) {
         Matcher m;
         Long eval = 0L;
         
@@ -46,7 +48,7 @@ public class Day18 extends Day {
             if (!m.find()) break;
             m.reset();
             for (MatchResult matchResult : m.results().collect(Collectors.toList())) {
-                eval = evalInner(matchResult);
+                eval = evalInner(matchResult, precedence);
                 s = s.replaceAll(Pattern.quote(matchResult.group()), eval.toString());
             }
         } while (true);
@@ -55,10 +57,11 @@ public class Day18 extends Day {
     }
     
     final Pattern EXP2 = Pattern.compile("(\\d+) *([+*]) *(\\d+)");
+    final Pattern EXP3 = Pattern.compile("(\\d+) *([+]) *(\\d+)");
     
-    Long evalInner(MatchResult r) {
+    Long evalInner(MatchResult r, boolean precedence) {
         String s = r.group();
-        Matcher m = EXP2.matcher(s);
+        Matcher m = ((precedence = precedence && s.contains("+")) ? EXP3 : EXP2).matcher(s);
         Long eval = 0L;
 
         while (m.find()) {
@@ -72,7 +75,9 @@ public class Day18 extends Day {
                 default -> throw new IllegalStateException("Unexpected value: " + op);
             };
 
-            m = EXP2.matcher(s = s.replaceFirst(Pattern.quote(m.group()), eval.toString()));
+            s = s.replaceFirst(Pattern.quote(m.group()), eval.toString());
+            if (!s.contains("+")) precedence = false;
+            m = (precedence ? EXP3 : EXP2).matcher(s);
         }
         
         return eval;
