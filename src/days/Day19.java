@@ -3,10 +3,11 @@ package days;
 import setup.Day;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static days.Rule.RULES;
 
 public class Day19 extends Day {
     
@@ -19,20 +20,36 @@ public class Day19 extends Day {
         String messages = split[1];
 
         Arrays.stream(rules.split("\r?\n")).forEach(Rule::stringToRule);
-        Rule.RULES.values().forEach(Rule::init);
+        RULES.values().forEach(Rule::init);
 
         this.messages = Arrays.stream(messages.split("\r?\n")).collect(Collectors.toList());
     }
 
     @Override
     public void part1() {
-        Rule rule = Rule.RULES.get("0");
+        Rule rule = RULES.get("0");
         System.out.println(messages.stream().filter(m -> "".equals(rule.matches(m))).count());
     }
 
     @Override
     public void part2() {
+        var p42 = RULES.get("42").toPattern();
+        var p31 = RULES.get("31").toPattern();
+        
+        // 8 = 42 | 42 8 = 42+
+        // 11 = 42 31 | 42 11 31 = 42{n} 31{n}
+        // So 0 = 8 11 = 42+ 42{n} 31{n} = 42{m} 31{n} where m > n
+        // Credit to https://github.com/tpatel/advent-of-code-2020/blob/main/day19.js
 
+        Pattern rule = Pattern.compile("(?<g42>(%s)+)(?<g31>(%s)+)".formatted(p42, p31));
+
+        System.out.println(messages.stream().map(rule::matcher)
+                .filter(Matcher::matches)
+                .map(m -> List.of(m.group("g42"), m.group("g31")))
+                .map(l -> List.of(p42.matcher(l.get(0)), p31.matcher(l.get(1))))
+                .map(l -> List.of(l.get(0).results().count(), l.get(1).results().count()))
+                .filter(l -> l.get(0) > l.get(1))
+                .count());
     }
 
     @Override
@@ -49,6 +66,7 @@ public class Day19 extends Day {
 interface Rule {
     Map<String, Rule> RULES = new HashMap<>();
     String matches(String s);
+    Pattern toPattern();
     void init();
      
     static Rule stringToRule(String s) {
@@ -90,12 +108,16 @@ interface Rule {
         }
     }
 }
-
 record StringRule(String id, String s) implements Rule {
     @Override
     public String matches(String s) {
         if (s.startsWith(this.s)) return s.replaceFirst(this.s, "");
         return null;
+    }
+
+    @Override
+    public Pattern toPattern() {
+        return Pattern.compile(s);
     }
 
     @Override
@@ -108,7 +130,6 @@ record StringRule(String id, String s) implements Rule {
         return s;
     }
 }
-
 record Conjunction(String id, List<String> rs, List<Rule> rules) implements Rule {
     Conjunction(String id, String... rs) {
         this(id, Arrays.asList(rs), new ArrayList<>());
@@ -126,6 +147,11 @@ record Conjunction(String id, List<String> rs, List<Rule> rules) implements Rule
     }
 
     @Override
+    public Pattern toPattern() {
+        return Pattern.compile(rules.stream().map(Rule::toPattern).map(Pattern::pattern).collect(Collectors.joining()));
+    }
+
+    @Override
     public void init() {
         rules.clear();
         rs.stream().map(RULES::get).map(Objects::requireNonNull).forEach(rules::add);
@@ -136,7 +162,6 @@ record Conjunction(String id, List<String> rs, List<Rule> rules) implements Rule
         return String.join(" ", rs);
     }
 }
-
 record Disjunction(String id, List<String> rs, List<Rule> rules) implements Rule {
     Disjunction(String id, String... rs) {
         this(id, Arrays.asList(rs), new ArrayList<>());
@@ -151,6 +176,11 @@ record Disjunction(String id, List<String> rs, List<Rule> rules) implements Rule
             }
         }
         return null;
+    }
+
+    @Override
+    public Pattern toPattern() {
+        return Pattern.compile("(" + rules.stream().map(Rule::toPattern).map(Pattern::pattern).collect(Collectors.joining("|")) + ")");
     }
 
     @Override
