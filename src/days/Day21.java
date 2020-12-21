@@ -20,9 +20,6 @@ public class Day21 extends Day {
             String allergens = s.substring(i);
             
             allergens = allergens.replaceFirst("\\(contains (.+)\\)", "$1");
-
-//            System.out.println(ingredients);
-//            System.out.println(allergens);
             
             foodsAndAllergens.put(Set.of(ingredients.split(" ")), Set.of(allergens.split(", ")));
         }
@@ -73,7 +70,28 @@ public class Day21 extends Day {
 
     @Override
     public void part2() {
+        List<Set<String>> unmapped = new ArrayList<>(possible.values());
         
+        while (!unmapped.isEmpty()) {
+            Optional<Set<String>> any = unmapped.stream().filter(s -> s.size() == 1).findAny();
+            if (any.isPresent()) {
+                Set<String> definite = any.get();
+                unmapped.remove(definite);
+                unmapped.forEach(s -> s.removeAll(definite));
+            }
+        }
+
+        ArrayList<String> dangerous = possible.entrySet().stream().sorted(Map.Entry.comparingByKey())
+                .map(Map.Entry::getValue)
+                .reduce(new ArrayList<>(), (acc, inc) -> {
+                    acc.addAll(inc);
+                    return acc;
+                }, (acc, inc) -> {
+                    acc.addAll(inc);
+                    return acc;
+                });
+
+        System.out.println(String.join(",", dangerous));
     }
 
     @Override
