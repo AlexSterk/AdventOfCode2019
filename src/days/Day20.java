@@ -3,19 +3,19 @@ package days;
 import setup.Day;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
 public class Day20 extends Day {
 
     private List<Tile> tiles;
+    private List<Tile> corners;
 
     @Override
     public void processInput() {
@@ -24,26 +24,37 @@ public class Day20 extends Day {
 
     @Override
     public void part1() {
-        HashMap<Tile, List<List<Character>>> sides = new HashMap<>();
-        tiles.forEach(t -> sides.put(t, List.of(t.getLeftSide(), t.getLRightSide(), t.getBottomSide(), t.getTopSide())));
-        List<Tile> corners = new ArrayList<>();
+        corners = new ArrayList<>();
+        
+        for (Tile tileOne : tiles) {
+            int sharesBorderWith = 0;
+            for (Tile tileTwo : tiles) {
+                if (tileOne == tileTwo) continue;
+                var sides = new HashSet<>(List.of(
+                        tileOne.getRightSide(),
+                        tileOne.getLeftSide(),
+                        tileOne.getTopSide(),
+                        tileOne.getBottomSide(),
+                        tileTwo.getRightSide(),
+                        tileTwo.getLeftSide(),
+                        tileTwo.getTopSide(),
+                        tileTwo.getBottomSide(),
+                        reversed(tileOne.getRightSide()),
+                        reversed(tileOne.getLeftSide()),
+                        reversed(tileOne.getTopSide()),
+                        reversed(tileOne.getBottomSide()),
+                        reversed(tileTwo.getRightSide()),
+                        reversed(tileTwo.getLeftSide()),
+                        reversed(tileTwo.getTopSide()),
+                        reversed(tileTwo.getBottomSide())
+                ));
 
-        for (Tile tile : tiles) {
-            List<List<Character>> side = sides.get(tile);
-            int borders = 0;
-            for (Tile other : tiles) {
-                if (tile == other) continue;
-                Set<List<Character>> lists = new HashSet<>(sides.get(other));
-                lists.retainAll(side);
-                List<List<Character>> reversed = side.stream().map(ArrayList::new).peek(Collections::reverse).collect(Collectors.toList());
-                lists.retainAll(reversed);
-                if (lists.size() > 0) borders++;
+                if (sides.size() != 16) sharesBorderWith++;
             }
-            if (borders == 2) corners.add(tile);
+            if (sharesBorderWith == 2) corners.add(tileOne);
         }
 
-        System.out.println(corners);
-        
+        System.out.println(corners.stream().mapToLong(t -> t.id).reduce((a, b) -> a*b).getAsLong());
     }
 
     private void writeTiles() {
@@ -71,12 +82,18 @@ public class Day20 extends Day {
 
     @Override
     public void part2() {
-
+        
     }
 
     @Override
     public int getDay() {
         return 20;
+    }
+    
+    static <T> List<T> reversed(List<T> in) {
+        ArrayList<T> ts = new ArrayList<>(in);
+        Collections.reverse(ts);
+        return ts;
     }
 }
 
@@ -114,7 +131,7 @@ class Tile {
         return side;
     }
 
-    List<Character> getLRightSide() {
+    List<Character> getRightSide() {
         ArrayList<Character> side = new ArrayList<>();
         for (int y = 0; y < height; y++) {
             side.add(grid[y][width - 1]);
