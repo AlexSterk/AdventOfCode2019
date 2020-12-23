@@ -17,73 +17,68 @@ public class Day23 extends Day {
 
     @Override
     public void part1() {
-        LinkedList<Integer> cups = new LinkedList<>(startingCups);
-        int moves = 100;
-        playGame(cups, moves);
+        var cups = new ArrayList<>(startingCups);
 
-        CircularListIterator<Integer> iterator = new CircularListIterator<>(cups);
-        iterator.setToIndex(cups.indexOf(1) + 1);
-        for (int i = 0; i < cups.size() - 1; i++) {
-            System.out.print(iterator.next());
-        }
+        int[] result = playGame(cups, 100);
+
+        int i = 1;
+        do {
+            System.out.print(i = result[i]);
+        } while (result[i] != 1);
         System.out.println();
     }
 
     @Override
     public void part2() {
-        LinkedList<Integer> cups = new LinkedList<>(startingCups);
+        ArrayList<Integer> cups = new ArrayList<>(startingCups);
+
         int million = 1000000;
-        IntStream.rangeClosed(Collections.max(cups), million)
+        IntStream.rangeClosed(Collections.max(cups) + 1, million)
             .forEach(cups::add);
 
-        playGame(cups, million * 10);
+        int[] res = playGame(cups, 10 * million);
 
-        int index = cups.indexOf(1);
+        int first = res[1];
+        int second = res[first];
 
-        CircularListIterator<Integer> it = new CircularListIterator<>(cups);
-        it.setToIndex((index + 1) % cups.size());
-
-        System.out.println(it.next() * it.next());
+        System.out.println(first * second);
     }
 
-    private void playGame(LinkedList<Integer> cups, int moves) {
-        CircularListIterator<Integer> cupsClockwise = new CircularListIterator<>(cups);
-        Integer current = cupsClockwise.next();
+    private int[] playGame(List<Integer> startingCups, int moves) {
+        Queue<Integer> cupsQueue = new ArrayDeque<>(startingCups);
 
+        int[] cups = new int[startingCups.size() + 1];
+
+        int first, current;
+        first = current = cupsQueue.poll();
+        while (!cupsQueue.isEmpty()) {
+            cups[current] = cupsQueue.poll();
+            current = cups[current];
+        }
+        cups[current] = first;
+
+        current = first;
         for (int move = 1; move <= moves; move++) {
-            System.out.println(move);
+            int a,b,c;
+            var removed = List.of(
+                    a = cups[current],
+                    b = cups[a],
+                    c = cups[b]
+            );
 
-//            System.out.println("Move: " + i);
-//            System.out.println("Cups: " + cups);
-//            System.out.println("Current: " + current);
-
-            List<Integer> picked = new ArrayList<>();
-            for (int j = 0; j < 3; j++) {
-                picked.add(cupsClockwise.next());
-                cupsClockwise.remove();
+            int destination = current > 1 ? current - 1 : cups.length - 1;
+            while (removed.contains(destination)) {
+                destination = destination > 1 ? destination - 1 : cups.length - 1;
             }
 
-//            System.out.println("Picked: " + picked);
+            cups[current] = cups[c];
+            cups[c] = cups[destination];
+            cups[destination] = a;
 
-            int min = 1;
-            while (picked.contains(min)) min++;
-            int max = cups.size() + 3;
-            while (picked.contains(max)) max--;
-
-            int destination = current;
-            do {
-                destination--;
-                if (destination < min) destination = max;
-            } while (picked.contains(destination));
-
-//            System.out.println("Destination: " + destination);
-
-            cupsClockwise.setToIndex((cups.indexOf(destination) + 1) % cups.size());
-            picked.forEach(cupsClockwise::add);
-            cupsClockwise.setToIndex((cups.indexOf(current) + 1) % cups.size());
-            current = cupsClockwise.next();
-//            System.out.println();
+            current = cups[current];
         }
+
+        return cups;
     }
 
     @Override
@@ -94,72 +89,5 @@ public class Day23 extends Day {
     @Override
     public boolean isTest() {
         return false;
-    }
-}
-
-class CircularListIterator<T> implements ListIterator<T> {
-    private final LinkedList<T> _list;
-    private ListIterator<T> _iterator;
-
-    CircularListIterator(LinkedList<T> list) {
-        _list = list;
-        _iterator = list.listIterator();
-    }
-
-    @Override
-    public boolean hasNext() {
-        return true;
-    }
-
-    @Override
-    public T next() {
-        if (!_iterator.hasNext()) {
-            _iterator = _list.listIterator();
-        }
-
-        return _iterator.next();
-    }
-
-    @Override
-    public boolean hasPrevious() {
-        return true;
-    }
-
-    @Override
-    public T previous() {
-        if (!_iterator.hasPrevious()) {
-            _iterator = _list.listIterator(_list.size() - 1);
-        }
-
-        return _iterator.previous();
-    }
-
-    @Override
-    public int nextIndex() {
-        return _iterator.nextIndex();
-    }
-
-    @Override
-    public int previousIndex() {
-        return _iterator.previousIndex();
-    }
-
-    @Override
-    public void remove() {
-        _iterator.remove();
-    }
-
-    @Override
-    public void set(T t) {
-        _iterator.set(t);
-    }
-
-    @Override
-    public void add(T t) {
-        _iterator.add(t);
-    }
-
-    public void setToIndex(int index) {
-        _iterator = _list.listIterator(index);
     }
 }
