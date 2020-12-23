@@ -1,3 +1,5 @@
+package days;
+
 import setup.Day;
 
 import java.util.*;
