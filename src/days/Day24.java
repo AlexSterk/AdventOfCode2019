@@ -2,10 +2,7 @@ package days;
 
 import setup.Day;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
@@ -53,8 +50,6 @@ enum Direction {
 }
 
 public class Day24 extends Day {
-
-
     private List<List<Direction>> instructions;
     private HexGrid grid;
 
@@ -70,24 +65,45 @@ public class Day24 extends Day {
         HexTile reference = new HexTile(grid, position);
         grid.put(position, reference);
 
-        int count = 0;
-
         for (List<Direction> route : instructions) {
             HexTile current = reference;
 
             current = current.walk(route);
 
             current.flip();
-            if (current.isBlack()) count++;
-            else count--;
         }
 
-        System.out.println(count);
+        System.out.println(getBlackTiles().size());
     }
 
     @Override
     public void part2() {
+        Set<HexTile> blackTiles = new HashSet<>(getBlackTiles());
+        for (int i = 0; i < 100; i++) {
+            Map<HexTile, Integer> neighbourCounts = new HashMap<>();
+            for (HexTile blackTile : blackTiles) {
+                for (Direction value : Direction.values()) {
+                    neighbourCounts.merge(blackTile.getNeighbour(value), 1, Integer::sum);
+                }
+            }
 
+            Set<HexTile> newTiles = new HashSet<>();
+
+            for (Map.Entry<HexTile, Integer> entry : neighbourCounts.entrySet()) {
+                HexTile t = entry.getKey();
+                Integer c = entry.getValue();
+                if (blackTiles.contains(t)) {
+                    if (c > 0 && c <= 2) newTiles.add(t);
+                } else if (c == 2) newTiles.add(t);
+            }
+
+            blackTiles = newTiles;
+        }
+        System.out.println(blackTiles.size());
+    }
+
+    List<HexTile> getBlackTiles() {
+        return grid.values().stream().filter(HexTile::isBlack).collect(Collectors.toList());
     }
 
     @Override
@@ -132,6 +148,19 @@ class HexTile {
 
         return current;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HexTile hexTile = (HexTile) o;
+        return position.equals(hexTile.position);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(position);
+    }
 }
 
 record HexGrid(Map<Position, HexTile> grid) {
@@ -152,5 +181,13 @@ record HexGrid(Map<Position, HexTile> grid) {
         Position applyDirection(Direction d) {
             return new Position(x + d.vx, y + d.vy, z + d.vz);
         }
+    }
+
+    public Collection<HexTile> values() {
+        return grid.values();
+    }
+
+    public Set<Position> keySet() {
+        return grid.keySet();
     }
 }
