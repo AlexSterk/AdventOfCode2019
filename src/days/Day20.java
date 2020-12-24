@@ -14,21 +14,21 @@ import java.util.stream.Collectors;
 
 public class Day20 extends Day {
 
-    private List<Tile> tiles;
-    private List<Tile> corners;
+    private List<PuzzleTile> tiles;
+    private List<PuzzleTile> corners;
 
     @Override
     public void processInput() {
-        tiles = Arrays.stream(input.split("(\r?\n){2}")).map(Tile::stringToTile).collect(Collectors.toList());
+        tiles = Arrays.stream(input.split("(\r?\n){2}")).map(PuzzleTile::stringToTile).collect(Collectors.toList());
     }
 
     @Override
     public void part1() {
         corners = new ArrayList<>();
         
-        for (Tile tileOne : tiles) {
+        for (PuzzleTile tileOne : tiles) {
             int sharesBorderWith = 0;
-            for (Tile tileTwo : tiles) {
+            for (PuzzleTile tileTwo : tiles) {
                 if (tileOne == tileTwo) continue;
                 var sides = new HashSet<>(List.of(
                         tileOne.getRightSide(),
@@ -58,7 +58,7 @@ public class Day20 extends Day {
     }
 
     private void writeTiles() {
-        for (Tile tile : tiles) {
+        for (PuzzleTile tile : tiles) {
             BufferedImage img = new BufferedImage(tile.width * tile.scale, tile.height * tile.scale, BufferedImage.TYPE_INT_RGB);
 
             Graphics2D graphics = img.createGraphics();
@@ -97,20 +97,20 @@ public class Day20 extends Day {
     }
 }
 
-class Tile {
+class PuzzleTile {
     final char[][] grid;
     final int width, height;
     final int id;
     final int scale = 10;
 
-    Tile(char[][] grid, int id) {
+    PuzzleTile(char[][] grid, int id) {
         this.grid = grid;
         width = grid[0].length;
         height = grid.length;
         this.id = id;
     }
     
-    static Tile stringToTile(String s) {
+    static PuzzleTile stringToTile(String s) {
         String[] lines = s.split("\r?\n");
 
         var id = Integer.parseInt(lines[0].replace("Tile ", "").replace(":", ""));
@@ -120,7 +120,7 @@ class Tile {
             grid[y] = lines[y+1].toCharArray();
         }
         
-        return new Tile(grid, id);
+        return new PuzzleTile(grid, id);
     }
     
     List<Character> getLeftSide() {
